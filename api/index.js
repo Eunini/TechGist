@@ -11,7 +11,7 @@ import path from 'path';
 dotenv.config();
 
 mongoose
-  .connect(process.env.MONGO)
+  .connect(process.env.DB_URI)
   .then(() => {
     console.log('MongoDb is connected');
   })
@@ -24,8 +24,7 @@ const __dirname = path.resolve();
 const app = express();
 
 app.use(express.json());
-app.use(cookieParser());
-
+app.use(cookieParser());0
 app.listen(3000, () => {
   console.log('Server is running on port 3000!');
 });
@@ -35,11 +34,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/post', postRoutes);
 app.use('/api/comment', commentRoutes);
 
-app.use(express.static(path.join(__dirname, '/client/dist')));
+app.use(express.static(path.join(__dirname, 'client')));
 
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
-});
+// app.get('*', (req, res) => {
+//   res.sendFile(path.join(__dirname, 'client', 'index.html'));
+// });
 
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
