@@ -93,7 +93,7 @@ export default function DashUsers() {
                   <Table.Cell>{user.email}</Table.Cell>
                   <Table.Cell>
                     {user.isAdmin ? (
-                      <FaCheck className='text-green-500' />
+                      <FaCheck className='text-gray-500' />
                     ) : (
                       <FaTimes className='text-red-500' />
                     )}
@@ -116,7 +116,7 @@ export default function DashUsers() {
           {showMore && (
             <button
               onClick={handleShowMore}
-              className='w-full text-teal-500 self-center text-sm py-7'
+              className='w-full text-gray-500 self-center text-sm py-7'
             >
               Show more
             </button>
