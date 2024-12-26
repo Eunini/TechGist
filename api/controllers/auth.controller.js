@@ -44,6 +44,7 @@ export const signup = async (req, res, next) => {
     }
   }
   // const hashedPassword = bcryptjs.hashSync(password, 10);
+  const hashedPassword = bcryptjs.hashSync(password, 10);
 
   const newUser = new User({
     username,
@@ -52,11 +53,11 @@ export const signup = async (req, res, next) => {
   });
 
   try {
-    await newUser .save();
-    res.json('Signup successful');
+    await newUser.save();
+    res.status(201).json({ message: 'Signup successful' });
   } catch (error) {
     console.error('Error during signup:', error);
-    next(error);
+    next(errorHandler(500, 'Error creating user'));
   }
 };
 
@@ -88,8 +89,7 @@ export const signin = async (req, res, next) => {
       { id: validUser._id, isAdmin: validUser.isAdmin },
       JWT_SECRET
     );
-    res.json({ token });
-    
+
     const { password: pass, ...rest } = validUser._doc;
     res
       .status(200)
