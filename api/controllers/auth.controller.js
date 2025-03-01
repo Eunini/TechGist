@@ -43,6 +43,7 @@ export const signup = async (req, res, next) => {
       );
     }
   }
+  // const hashedPassword = bcryptjs.hashSync(password, 10);
   const hashedPassword = bcryptjs.hashSync(password, 10);
 
   const newUser = new User({
@@ -88,8 +89,7 @@ export const signin = async (req, res, next) => {
       { id: validUser._id, isAdmin: validUser.isAdmin },
       JWT_SECRET
     );
-    res.json({ token });
-    
+
     const { password: pass, ...rest } = validUser._doc;
     res
       .status(200)
