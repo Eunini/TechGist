@@ -53,8 +53,12 @@ export default function DashProfile() {
       });
       const data = await res.json();
       if (!res.ok) {
-        dispatch(updateFailure(data.message));
-        setUpdateUserError(data.message);
+        const text = await res.text(); // Get response text (HTML)
+        console.log('Error response text:', text);
+        setUpdateUserError('Something went wrong');
+        return;
+        // dispatch(updateFailure(data.message));
+        // setUpdateUserError(data.message);
       } else {
         dispatch(updateSuccess(data));
         setUpdateUserSuccess("User's profile updated successfully");
@@ -63,6 +67,17 @@ export default function DashProfile() {
       dispatch(updateFailure(error.message));
       setUpdateUserError(error.message);
     }
+
+    const data = await res.json();
+if (!data) {
+  console.error('Expected JSON but received:', res);
+  setUpdateUserError('Invalid response format');
+  return;
+}
+
+// Process the data if JSON is valid
+dispatch(updateSuccess(data));
+setUpdateUserSuccess("User's profile updated successfully");
   };
 
 
@@ -77,7 +92,12 @@ export default function DashProfile() {
       });
       const data = await res.json();
       if (!res.ok) {
-        dispatch(deleteUserFailure(data.message));
+          const text = await res.text(); // Get response text (HTML)
+          console.log('Error response:', text);
+          setUpdateUserError('Something went wrong');
+          return;
+        
+        // dispatch(deleteUserFailure(data.message));
       } else {
         dispatch(deleteUserSuccess(data));
       }
@@ -94,7 +114,12 @@ export default function DashProfile() {
       });
       const data = await res.json();
       if (!res.ok) {
-        console.log(data.message);
+          const text = await res.text(); // Get response text (HTML)
+          console.log('Error response:', text);
+          setUpdateUserError('Something went wrong');
+          return;
+    
+        // console.log(data.message);
       } else {
         dispatch(signoutSuccess());
       }

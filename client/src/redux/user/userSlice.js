@@ -18,6 +18,7 @@ const userSlice = createSlice({
       state.currentUser = action.payload;
       state.loading = false;
       state.error = null;
+      state.isAdmin = action.payload.isAdmin; // Add admin status to state
     },
     signInFailure: (state, action) => {
       state.loading = false;

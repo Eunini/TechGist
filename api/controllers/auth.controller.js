@@ -43,7 +43,7 @@ export const signup = async (req, res, next) => {
       );
     }
   }
-  // const hashedPassword = bcryptjs.hashSync(password, 10);
+  const hashedPassword = bcryptjs.hashSync(password, 10);
 
   const newUser = new User({
     username,
@@ -52,11 +52,11 @@ export const signup = async (req, res, next) => {
   });
 
   try {
-    await newUser .save();
-    res.json('Signup successful');
+    await newUser.save();
+    res.status(201).json({ message: 'Signup successful' });
   } catch (error) {
     console.error('Error during signup:', error);
-    next(error);
+    next(errorHandler(500, 'Error creating user'));
   }
 };
 
@@ -81,7 +81,7 @@ export const signin = async (req, res, next) => {
 
     const JWT_SECRET = process.env.JWT_SECRET;
     if (!JWT_SECRET) {
-      throw new Error('JWT_SECRET is not defined');
+      return next(errorHandler(400, 'JWT not defined'));
     }
 
     const token = jwt.sign(
@@ -93,8 +93,12 @@ export const signin = async (req, res, next) => {
     const { password: pass, ...rest } = validUser._doc;
     res
       .status(200)
-      .cookie('access_token', token, { httpOnly: true })
-      .json(rest);
+      .cookie('access_token', token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+      })
+      .json({ ...rest, isAdmin: validUser.isAdmin });
   } catch (error) {
     console.error('Error during sign-in:', error.message);
     next(errorHandler(500, 'Internal Server Error'));
@@ -157,3 +161,23 @@ export const google = async (req, res, next) => {
     next(error);
   }
 };
+
+
+// export const verifyAdmin = (req, res, next) => {
+//   try {
+//     const token = req.cookies.access_token;
+//     if (!token) return res.status(401).json({ message: 'Unauthorized' });
+
+//     const JWT_SECRET = process.env.JWT_SECRET;
+//     const decoded = jwt.verify(token, JWT_SECRET);
+
+//     if (!decoded.isAdmin) {
+//       return res.status(403).json({ message: 'Access denied' });
+//     }
+
+//     req.user = decoded;
+//     next();
+//   } catch (error) {
+//     res.status(403).json({ message: 'Invalid token' });
+//   }
+// };
