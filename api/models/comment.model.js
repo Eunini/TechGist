@@ -1,31 +1,20 @@
-import mongoose from 'mongoose';
+import { DataTypes } from 'sequelize';
+import sequelize from '../config/database.js';
 
-const commentSchema = new mongoose.Schema(
-  {
-    content: {
-      type: String,
-      required: true,
-    },
-    postId: {
-      type: String,
-      required: true,
-    },
-    userId: {
-      type: String,
-      required: true,
-    },
-    likes: {
-      type: Array,
-      default: [],
-    },
-    numberOfLikes: {
-      type: Number,
-      default: 0,
-    },
+const Comment = sequelize.define('Comment', {
+  id: {
+    type: DataTypes.UUID,
+    defaultValue: DataTypes.UUIDV4,
+    primaryKey: true,
   },
-  { timestamps: true }
-);
-
-const Comment = mongoose.model('Comment', commentSchema);
+  content: {
+    type: DataTypes.TEXT,
+    allowNull: false,
+  },
+  likes: {
+    type: DataTypes.INTEGER,
+    defaultValue: 0,
+  },
+});
 
 export default Comment;

@@ -1,21 +1,33 @@
 import express from 'express';
 import {
-  deleteUser,
-  getUser,
-  getUsers,
-  signout,
-  test,
-  updateUser,
+    getUserProfile,
+    updateUserProfile,
+    followUser,
+    unfollowUser,
+    getAllUsers,
+    deleteUser
 } from '../controllers/user.controller.js';
-import { verifyToken } from '../utils/verifyUser.js';
+import { protect } from '../middlewares/auth.middleware.js';
+import { restrictTo } from '../middlewares/role.middleware.js';
 
 const router = express.Router();
 
-router.get('/test', test);
-router.put('/update/:userId', verifyToken, updateUser);
-router.delete('/api/user/delete/:userId', verifyToken, deleteUser);
-router.post('/signout', signout);
-router.get('/getusers', verifyToken, getUsers);
-router.get('/:userId', getUser);
+// All routes below are protected
+router.use(protect);
+
+router.route('/:userId')
+    .get(getUserProfile)
+    .put(updateUserProfile);
+
+router.post('/follow/:userIdToFollow', followUser);
+router.post('/unfollow/:userIdToUnfollow', unfollowUser);
+
+// Admin routes
+router.route('/')
+    .get(restrictTo('admin'), getAllUsers);
+
+router.route('/:userId')
+    .delete(restrictTo('admin'), deleteUser);
+
 
 export default router;

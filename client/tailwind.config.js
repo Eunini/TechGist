@@ -1,15 +1,17 @@
-/** @type {import('tailwindcss').Config} */
-import flowbitePlugin from 'flowbite/plugin'; // Import the flowbite plugin
-import tailwindScrollbar from 'tailwind-scrollbar'; // Import the tailwind-scrollbar plugin
+import flowbite from 'flowbite-react/tailwind';
 
+/** @type {import('tailwindcss').Config} */
 export default {
   content: [
     './index.html',
     './src/**/*.{js,ts,jsx,tsx}',
-    'node_modules/flowbite-react/**/*.{js,jsx,ts,tsx}',
+    flowbite.content(),
   ],
+  theme: {
+    extend: {},
+  },
   plugins: [
-    flowbitePlugin, 
-    tailwindScrollbar, 
+    flowbite.plugin(),
+    'tailwind-scrollbar',
   ],
 };

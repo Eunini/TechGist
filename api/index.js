@@ -7,30 +7,29 @@ import postRoutes from './routes/post.route.js';
 import commentRoutes from './routes/comment.route.js';
 import cookieParser from 'cookie-parser';
 import path from 'path';
-import cors from 'cors';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
-const DB_URI = process.env.DB_URI;
 
 mongoose
-  .connect(DB_URI)
+  .connect(process.env.MONGO)
   .then(() => {
     console.log('MongoDb is connected');
   })
   .catch((err) => {
-    console.log("this is the error we are encountering ", err);
+    console.log(err);
   });
 
-const __dirname = path.resolve();
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
-
 app.use(express.json());
 app.use(cookieParser());
-app.listen(5173, () => {
-  console.log('Server is running on port 5173!');
+
+app.listen(3001, () => {
+  console.log('Server is running on port 3001!');
 });
 
 app.use('/api/user', userRoutes);
@@ -38,23 +37,14 @@ app.use('/api/auth', authRoutes);
 app.use('/api/post', postRoutes);
 app.use('/api/comment', commentRoutes);
 
-app.use(express.static(path.join(__dirname, 'client/dist'))); 
+app.use(express.static(path.join(__dirname, '../client/dist')));
 
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/dist', 'index.html'));
+  res.sendFile(path.join(__dirname, '..', 'client', 'dist', 'index.html'));
 });
-app.use(express.static(path.join(__dirname, 'client'), {
-  setHeaders: (res, path) => {
-    if (path.endsWith('.jsx')) {
-      res.setHeader('Content-Type', 'application/javascript');
-    }
-  },
-}));
-
 
 app.use((err, req, res, next) => {
-  const statusCode = err.statusCode;
-  console.error(err.stack);
+  const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
   res.status(statusCode).json({
     success: false,

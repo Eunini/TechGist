@@ -2,6 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
   currentUser: null,
+  token: null, // To store the JWT
   error: null,
   loading: false,
 };
@@ -15,10 +16,10 @@ const userSlice = createSlice({
       state.error = null;
     },
     signInSuccess: (state, action) => {
-      state.currentUser = action.payload;
+      state.currentUser = action.payload.user;
+      state.token = action.payload.token;
       state.loading = false;
       state.error = null;
-      state.isAdmin = action.payload.isAdmin; // Add admin status to state
     },
     signInFailure: (state, action) => {
       state.loading = false;
@@ -43,6 +44,7 @@ const userSlice = createSlice({
     },
     deleteUserSuccess: (state) => {
       state.currentUser = null;
+      state.token = null;
       state.loading = false;
       state.error = null;
     },
@@ -52,6 +54,7 @@ const userSlice = createSlice({
     },
     signoutSuccess: (state) => {
       state.currentUser = null;
+      state.token = null;
       state.error = null;
       state.loading = false;
     },

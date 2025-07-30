@@ -6,35 +6,6 @@ body {
   height: 100vh;
 }
 
-.bg-image{
-  width: 800px;
-  height: 600px;
-  object-fit: contain;
-  position: absolute;
-  right: 0;
-  margin: auto;
-  animation: animate 2s infinite ease alternate;
-}
-  @keyframes animate {
-    to {
-      transform: translateY(20px);
-    }
-  }
-
-@media only screen and (max-width: 768px) {
-  .bg-image{
-    width: 300px;
-    height: 300px;
- }
-}
-
-.bg-color-light{
-  background-color:  #a9d8e6;
-}
-
-.bg-color-dark{
-  background-color:  #101010;
-}
 .ql-editor {
   font-size: 1.05rem;
 }
@@ -67,62 +38,4 @@ body {
 
 .dark .post-content a {
   color: red;
-}
-
-/* Style for the dropdown container */
-.dropdown-container {
-  position: relative;
-  z-index: 1000;
-}
-
-/* The background and opacity effect */
-.dropdown-menu {
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.8);
-  border-radius: 10px;
-  padding: 10px;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(-20px);
-  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
-}
-
-/* Make dropdown visible with smooth fade-in and slide-down effect */
-.dropdown-container:hover .dropdown-menu {
-  z-index: 1000;
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-}
-
-/* Style the dropdown item for buttons */
-.dropdown-item,
-.dropdown-item-signout{
-  z-index: 1000;
-  padding: 10px;
-  background-color: #14752d; 
-  color: white;
-  border-radius: 19px;
-  font-weight: bold;
-  text-align: center;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-/* Add hover effect for better aesthetics */
-.dropdown-item:hover,
-.dropdown-item-signout:hover {
-  background-color: #1d6141; 
-  transform: scale(1.05);
-}
-
-.dropdown-link {
-  text-decoration: none;
-}
-
-/* Add subtle divider style */
-.dropdown-divider {
-  border-top: 1px solid rgba(255, 255, 255, 0.3);
-  margin: 10px 0;
 }
