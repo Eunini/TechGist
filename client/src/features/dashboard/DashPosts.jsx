@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
-import { set } from 'mongoose';
 
 export default function DashPosts() {
   const { currentUser } = useSelector((state) => state.user);
@@ -12,9 +11,9 @@ export default function DashPosts() {
   const [showModal, setShowModal] = useState(false);
   const [postIdToDelete, setPostIdToDelete] = useState('');
   useEffect(() => {
-    const fetchPosts = async () => {
+  const fetchPosts = async () => {
       try {
-        const res = await fetch(`/api/post/getposts?userId=${currentUser._id}`);
+    const res = await fetch(`/api/post/getposts?userId=${currentUser.id}`);
         const data = await res.json();
         if (res.ok) {
           setUserPosts(data.posts);
@@ -26,16 +25,16 @@ export default function DashPosts() {
         console.log(error.message);
       }
     };
-    if (currentUser.isAdmin) {
+  if (currentUser.role === 'admin') {
       fetchPosts();
     }
-  }, [currentUser._id]);
+  }, [currentUser.id, currentUser.role]);
 
   const handleShowMore = async () => {
-    const startIndex = userPosts.length;
+  const startIndex = userPosts.length;
     try {
       const res = await fetch(
-        `/api/post/getposts?userId=${currentUser._id}&startIndex=${startIndex}`
+    `/api/post/getposts?userId=${currentUser.id}&startIndex=${startIndex}`
       );
       const data = await res.json();
       if (res.ok) {
@@ -53,17 +52,15 @@ export default function DashPosts() {
     setShowModal(false);
     try {
       const res = await fetch(
-        `/api/post/deletepost/${postIdToDelete}/${currentUser._id}`,
-        {
-          method: 'DELETE',
-        }
+        `/api/post/deletepost/${postIdToDelete}/${currentUser.id}`,
+        { method: 'DELETE' }
       );
       const data = await res.json();
       if (!res.ok) {
         console.log(data.message);
       } else {
         setUserPosts((prev) =>
-          prev.filter((post) => post._id !== postIdToDelete)
+          prev.filter((post) => post.id !== postIdToDelete)
         );
       }
     } catch (error) {
@@ -73,7 +70,7 @@ export default function DashPosts() {
 
   return (
     <div className='table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500'>
-      {currentUser.isAdmin && userPosts.length > 0 ? (
+  {currentUser.role === 'admin' && userPosts.length > 0 ? (
         <>
           <Table hoverable className='shadow-md'>
             <Table.Head>
@@ -87,7 +84,7 @@ export default function DashPosts() {
               </Table.HeadCell>
             </Table.Head>
             {userPosts.map((post) => (
-              <Table.Body className='divide-y'>
+              <Table.Body className='divide-y' key={post.id}>
                 <Table.Row className='bg-white dark:border-gray-700 dark:bg-gray-800'>
                   <Table.Cell>
                     {new Date(post.updatedAt).toLocaleDateString()}
@@ -114,7 +111,7 @@ export default function DashPosts() {
                     <span
                       onClick={() => {
                         setShowModal(true);
-                        setPostIdToDelete(post._id);
+                        setPostIdToDelete(post.id);
                       }}
                       className='font-medium text-red-500 hover:underline cursor-pointer'
                     >
@@ -124,7 +121,7 @@ export default function DashPosts() {
                   <Table.Cell>
                     <Link
                       className='text-teal-500 hover:underline'
-                      to={`/update-post/${post._id}`}
+                      to={`/update-post/${post.id}`}
                     >
                       <span>Edit</span>
                     </Link>

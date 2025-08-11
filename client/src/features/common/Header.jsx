@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Avatar, Button, Dropdown, Navbar, TextInput } from 'flowbite-react';
+import { useState, useEffect, useRef } from 'react';
+import { Avatar, Button, Navbar, TextInput } from 'flowbite-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AiOutlineSearch } from 'react-icons/ai';
-import { FaMoon, FaSun, FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import { FaMoon, FaSun } from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
 import { useTheme } from '../../hooks/useTheme';
 import { signoutSuccess } from '../../redux/user/userSlice';
+import ProfileMenu from '../../components/UI/ProfileMenu';
+import InitialAvatar from '../../components/UI/InitialAvatar';
 
 export default function Header() {
-  const path = useLocation().pathname;
   const location = useLocation();
+  const path = location.pathname;
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { currentUser } = useSelector((state) => state.user);
@@ -35,15 +37,14 @@ export default function Header() {
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
-    const searchTermFromUrl = urlParams.get('searchTerm');
-    if (searchTermFromUrl) {
-      setSearchTerm(searchTermFromUrl);
-    }
+    const searchTermFromUrl = urlParams.get('searchTerm') || '';
+    // Only update state if value actually differs to prevent redundant renders
+    setSearchTerm(prev => (prev === searchTermFromUrl ? prev : searchTermFromUrl));
   }, [location.search]);
 
   const handleSignout = async () => {
     try {
-      const res = await fetch('/api/user/signout', { method: 'POST' });
+      const res = await fetch('/api/auth/signout', { method: 'POST' });
       const data = await res.json();
       if (!res.ok) {
         console.log(data.message);
@@ -63,6 +64,10 @@ export default function Header() {
     navigate(`/search?${searchQuery}`);
   };
 
+  const avatarRef = useRef(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const toggleMenu = () => setMenuOpen(o => !o);
   return (
     <Navbar
       className={`${
@@ -97,25 +102,19 @@ export default function Header() {
           {theme === 'light' ? <FaSun /> : <FaMoon />}
         </Button>
         {currentUser ? (
-          <Dropdown
-            arrowIcon={true}
-            inline
-            label={<Avatar alt='user' img={currentUser.profilePicture} rounded />}
-          >
-            <Dropdown.Header>
-              <span className='block text-sm'>{currentUser.username}</span>
-            </Dropdown.Header>
-            <Link to={`/profile/${currentUser._id}`}>
-              <Dropdown.Item icon={FaUser}>Profile</Dropdown.Item>
-            </Link>
-            <Link to={'/dashboard?tab=profile'}>
-              <Dropdown.Item icon={FaCog}>Dashboard</Dropdown.Item>
-            </Link>
-            <Dropdown.Divider />
-            <Dropdown.Item icon={FaSignOutAlt} onClick={handleSignout}>
-              Sign out
-            </Dropdown.Item>
-          </Dropdown>
+          <div className='relative z-[1100]'>
+            <button ref={avatarRef} onClick={toggleMenu} className='focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full transition-transform hover:scale-105'>
+              <InitialAvatar name={currentUser.username} src={currentUser.profilePicture} size={44} />
+            </button>
+            {menuOpen && (
+              <ProfileMenu
+                user={currentUser}
+                onSignout={handleSignout}
+                onClose={() => setMenuOpen(false)}
+                anchorRef={avatarRef}
+              />
+            )}
+          </div>
         ) : (
           <Link to='/sign-in'>
             <Button gradientDuoTone='purpleToBlue' outline>

@@ -1,5 +1,6 @@
 import { Alert, Button, Modal, TextInput } from 'flowbite-react';
-import {useState } from 'react';
+import {useState, useRef } from 'react';
+import InitialAvatar from '../../components/UI/InitialAvatar';
 import { useSelector } from 'react-redux';
 import { useDispatch } from 'react-redux';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
@@ -13,6 +14,7 @@ import {
   deleteUserFailure,
   signoutSuccess,
 } from '../../redux/user/userSlice.js';
+import { useToast } from '../../components/UI/ToastProvider.jsx';
 
 export default function DashProfile() {
   const { currentUser, error, loading, token } = useSelector((state) => state.user);
@@ -20,10 +22,28 @@ export default function DashProfile() {
   const [updateUserError, setUpdateUserError] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({});
+  const [preview, setPreview] = useState(null);
+  const fileInputRef = useRef(null);
   const dispatch = useDispatch();
+  const { push } = useToast();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleImageSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setUpdateUserError('File must be an image');
+      return;
+    }
+    if (file.size > 300 * 1024) { // server limit 300KB
+      setUpdateUserError('Image too large (max 300KB). Please compress.');
+      return;
+    }
+    setPreview(URL.createObjectURL(file));
+    setFormData(prev => ({ ...prev, profilePictureFile: file }));
   };
 
   const handleSubmit = async (e) => {
@@ -36,25 +56,51 @@ export default function DashProfile() {
     }
     try {
       dispatch(updateStart());
-      const res = await fetch(`/api/users/${currentUser.id}`, {
+      const fd = new FormData();
+      Object.entries(formData).forEach(([k,v]) => {
+        if (v === undefined || v === null || v === '') return;
+        if (k === 'profilePictureFile') {
+          fd.append('profilePicture', v); // field name expected by backend multer config
+        } else {
+          fd.append(k, v);
+        }
+      });
+      const res = await fetch(`/api/user/${currentUser.id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
+        body: fd,
       });
-      const data = await res.json();
+      const ct = res.headers.get('content-type')||'';
+      let data;
+      if (ct.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        data = { message: text.slice(0,200) || 'Unexpected response' };
+      }
       if (!res.ok) {
         dispatch(updateFailure(data.message));
         setUpdateUserError(data.message);
+        push(data.message || 'Update failed', 'error');
       } else {
-        dispatch(updateSuccess(data.data.user));
+        const updated = data.data.user;
+        if (updated && updated.profilePicture) {
+          // If server returns relative path (/uploads/avatars/...), prepend origin for reliability in dev/prod
+          const isAbsolute = /^(https?:)?\/\//i.test(updated.profilePicture);
+          const base = window.location.origin.replace(/:\d+$/, '') + (import.meta.env.VITE_API_PORT ? `:${import.meta.env.VITE_API_PORT}` : '');
+          const full = isAbsolute ? updated.profilePicture : `${base}${updated.profilePicture.startsWith('/') ? '' : '/'}${updated.profilePicture}`;
+          updated.profilePicture = `${full}?t=${Date.now()}`; // cache bust
+        }
+        dispatch(updateSuccess(updated));
         setUpdateUserSuccess("User's profile updated successfully");
+        push('Profile updated', 'success');
       }
     } catch (error) {
       dispatch(updateFailure(error.message));
       setUpdateUserError(error.message);
+      push(error.message || 'Update error', 'error');
     }
   };
 
@@ -62,28 +108,33 @@ export default function DashProfile() {
     setShowModal(false);
     try {
       dispatch(deleteUserStart());
-      const res = await fetch(`/api/users/${currentUser.id}`, {
+      const res = await fetch(`/api/user/${currentUser.id}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
       });
-      const data = await res.json();
+      const ct = res.headers.get('content-type')||'';
+      const data = ct.includes('application/json') ? await res.json() : {}; 
       if (!res.ok) {
         dispatch(deleteUserFailure(data.message));
+        push(data.message || 'Delete failed', 'error');
       } else {
         dispatch(deleteUserSuccess());
+        push('Account deleted', 'success');
       }
     } catch (error) {
       dispatch(deleteUserFailure(error.message));
+      push(error.message || 'Delete error', 'error');
     }
   };
 
   const handleSignout = () => {
     // No API call needed for signout with JWT, just clear client state
     try {
-      dispatch(signoutSuccess());
+  dispatch(signoutSuccess());
+  push('Signed out', 'info');
     } catch (error) {
       console.log(error.message);
     }
@@ -93,13 +144,24 @@ export default function DashProfile() {
     <div className='max-w-lg mx-auto p-3 w-full'>
       <h1 className='my-7 text-center font-semibold text-3xl'>Profile</h1>
       <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
-        <div className='relative w-32 h-32 self-center shadow-md overflow-hidden rounded-full'>
-          <img
-            src={currentUser.profilePicture}
-            alt='user'
-            className='rounded-full w-full h-full object-cover border-8 border-[lightgray]'
+        <div className='self-center'>
+          <InitialAvatar
+            name={currentUser.username}
+            src={preview || currentUser.profilePicture}
+            size={128}
+            editable
+            onClick={() => fileInputRef.current?.click()}
+            className='shadow-md border-4 border-indigo-200 dark:border-gray-600'
+          />
+          <input
+            ref={fileInputRef}
+            type='file'
+            accept='image/*'
+            className='hidden'
+            onChange={handleImageSelect}
           />
         </div>
+        <p className='text-center text-xs text-gray-500 -mt-2'>PNG/JPG, &lt; 120KB recommended</p>
         <TextInput
           type='text'
           id='username'
@@ -124,16 +186,18 @@ export default function DashProfile() {
         <TextInput
           type='password'
           id='password'
-          placeholder='password'
+          placeholder='password (leave blank to keep)'
           onChange={handleChange}
         />
-        <Button
-          type='submit'
-          outline
-          disabled={loading}
-        >
-          {loading ? 'Loading...' : 'Update'}
-        </Button>
+        <div className='flex justify-end mt-2'>
+          <Button
+            type='submit'
+            gradientDuoTone='purpleToBlue'
+            disabled={loading}
+          >
+            {loading ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
         {(currentUser.role === 'admin' || currentUser.role === 'contributor') && (
           <Link to={'/create-post'}>
             <Button
@@ -145,13 +209,22 @@ export default function DashProfile() {
           </Link>
         )}
       </form>
-      <div className='text-red-500 flex justify-between mt-5'>
-        <span onClick={() => setShowModal(true)} className='cursor-pointer'>
-          Delete Account
-        </span>
-        <span onClick={handleSignout} className='cursor-pointer'>
-          Sign Out
-        </span>
+      <div className='flex flex-col sm:flex-row gap-3 mt-8'>
+        <Button
+          color='failure'
+          outline
+          onClick={() => setShowModal(true)}
+          className='flex-1 flex items-center justify-center gap-2 !border-2'
+        >
+          <span className='text-sm font-semibold'>Delete Account</span>
+        </Button>
+        <Button
+          color='gray'
+          onClick={handleSignout}
+          className='flex-1 flex items-center justify-center gap-2 !border-2 border-gray-300 dark:border-gray-600'
+        >
+          <span className='text-sm font-semibold'>Sign Out</span>
+        </Button>
       </div>
       {updateUserSuccess && (
         <Alert color='success' className='mt-5'>

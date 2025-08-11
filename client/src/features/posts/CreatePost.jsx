@@ -4,17 +4,45 @@ import 'react-quill/dist/quill.snow.css';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { useToast } from '../../components/UI/ToastProvider';
 
 export default function CreatePost() {
   const [formData, setFormData] = useState({});
   const [publishError, setPublishError] = useState(null);
   const navigate = useNavigate();
   const { token } = useSelector((state) => state.user);
+  const { push } = useToast();
+
+  const validateImageUrl = (url) => {
+    if (!url) return true; // optional
+    try {
+      new URL(url);
+      return /\.(png|jpe?g|gif|webp|svg)$/i.test(url.split('?')[0]);
+    } catch {
+      return false;
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.title || formData.title.length < 5) {
+  push('Title must be at least 5 characters.', 'error');
+  return setPublishError('Title must be at least 5 characters.');
+    }
+    if (!formData.topic) {
+  push('Please select a topic.', 'error');
+  return setPublishError('Please select a topic.');
+    }
+    if (!formData.content || formData.content.replace(/<[^>]*>/g, '').trim().length < 50) {
+  push('Content must be at least 50 characters.', 'error');
+  return setPublishError('Content must be at least 50 characters.');
+    }
+    if (!validateImageUrl(formData.image)) {
+  push('Invalid image URL', 'error');
+  return setPublishError('Please provide a valid image URL (png,jpg,jpeg,gif,webp,svg).');
+    }
     try {
-      const res = await fetch('/api/posts', {
+  const res = await fetch('/api/post/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -24,15 +52,16 @@ export default function CreatePost() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setPublishError(data.message);
+        push(data.message || 'Failed to publish post.', 'error');
+        setPublishError(data.message || 'Failed to publish post.');
         return;
       }
-      if (res.ok) {
-        setPublishError(null);
-        navigate(`/post/${data.data.post.slug}`);
-      }
+      setPublishError(null);
+      push('Post published!', 'success');
+  navigate(`/post/${data.data.post.slug}`);
     } catch (error) {
       setPublishError('Something went wrong');
+      push('Something went wrong', 'error');
     }
   };
 

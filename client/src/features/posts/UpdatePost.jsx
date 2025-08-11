@@ -15,15 +15,18 @@ export default function UpdatePost() {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        const res = await fetch(`/api/posts/${postId}`);
+        const res = await fetch(`/api/post/getposts?search=${postId}`);
         const data = await res.json();
         if (!res.ok) {
-          setPublishError(data.message);
+          setPublishError(data.message || 'Failed to load post');
           return;
         }
-        if (res.ok) {
+        const match = (data.posts || []).find(p => p.id === postId);
+        if (match) {
+          setFormData(match);
           setPublishError(null);
-          setFormData(data.data.post);
+        } else {
+          setPublishError('Post not found');
         }
       } catch (error) {
         console.log(error.message);
@@ -35,7 +38,7 @@ export default function UpdatePost() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch(`/api/posts/${formData.id}`, {
+      const res = await fetch(`/api/post/updatepost/${formData.id}/${formData.authorId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -23,13 +23,13 @@ export default function DashboardComp() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await fetch('/api/user/getusers?limit=5');
+        const res = await fetch('/api/user?limit=5&offset=0');
         const data = await res.json();
         if (res.ok) {
           setUsers(data.users);
           setTotalUsers(data.totalUsers);
           setLastMonthUsers(data.lastMonthUsers);
-        }
+        } else { console.log(data.message); }
       } catch (error) {
         console.log(error.message);
       }
@@ -60,7 +60,7 @@ export default function DashboardComp() {
         console.log(error.message);
       }
     };
-    if (currentUser.isAdmin) {
+  if (currentUser?.role === 'admin') {
       fetchUsers();
       fetchPosts();
       fetchComments();

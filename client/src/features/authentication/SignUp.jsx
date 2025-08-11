@@ -2,19 +2,58 @@ import { Alert, Button, Label, Spinner, TextInput } from 'flowbite-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import OAuth from '../common/OAuth';
+import { useToast } from '../../components/UI/ToastProvider';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({});
+  const [pwdScore, setPwdScore] = useState(0);
+  const [pwdLabel, setPwdLabel] = useState('');
   const [errorMessage, setErrorMessage] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { push } = useToast();
+  const computePasswordStrength = (pwd) => {
+    if (!pwd) return { score: 0, label: '' };
+    let score = 0;
+    if (pwd.length >= 8) score += 1;
+    if (pwd.length >= 12) score += 1;
+    if (/[0-9]/.test(pwd)) score += 1;
+    if (/[^A-Za-z0-9]/.test(pwd)) score += 1;
+    if (/[a-z]/.test(pwd) && /[A-Z]/.test(pwd)) score += 1;
+    const labels = ['Weak', 'Weak', 'Fair', 'Good', 'Strong', 'Very Strong'];
+    return { score, label: labels[score] };
+  };
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
+    const { id, value } = e.target;
+    const trimmed = value.trim();
+    setFormData({ ...formData, [id]: trimmed });
+    if (id === 'password') {
+      const { score, label } = computePasswordStrength(value);
+      setPwdScore(score);
+      setPwdLabel(label);
+    }
+  };
+  const validateEmail = (email) => {
+    // Simple email regex
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+  const validatePassword = (password) => {
+    // At least 8 chars, 1 letter, 1 number
+    return /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d!@#$%^&*()_+\-=]{8,}$/.test(password);
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.username || !formData.email || !formData.password) {
-      return setErrorMessage('Please fill out all fields.');
+  push('Please fill out all fields.', 'error');
+  return setErrorMessage('Please fill out all fields.');
+    }
+    if (!validateEmail(formData.email)) {
+  push('Please enter a valid email address.', 'error');
+  return setErrorMessage('Please enter a valid email address.');
+    }
+    if (!validatePassword(formData.password)) {
+  push('Weak password: must contain at least 8 characters, a letter and a number', 'error');
+  return setErrorMessage('Password must be at least 8 characters and contain at least one letter and one number.');
     }
     try {
       setLoading(true);
@@ -26,14 +65,17 @@ export default function SignUp() {
       });
       const data = await res.json();
       if (data.success === false) {
+        push(data.message || 'Sign up failed', 'error');
         return setErrorMessage(data.message);
       }
       setLoading(false);
       if (res.ok) {
+        push('Account created. Please sign in.', 'success');
         navigate('/sign-in');
       }
     } catch (error) {
       setErrorMessage(error.message);
+      push(error.message, 'error');
       setLoading(false);
     }
   };
@@ -81,7 +123,26 @@ export default function SignUp() {
                 placeholder='Password'
                 id='password'
                 onChange={handleChange}
+                color={pwdScore >= 4 ? 'success' : pwdScore >= 3 ? 'warning' : undefined}
               />
+              {formData.password && (
+                <div className='mt-2'>
+                  <div className='h-2 w-full bg-gray-200 dark:bg-gray-700 rounded'>
+                    <div
+                      className={`h-2 rounded transition-all duration-300 ${
+                        pwdScore <= 1 ? 'bg-red-500' : pwdScore === 2 ? 'bg-orange-500' : pwdScore === 3 ? 'bg-yellow-400' : pwdScore === 4 ? 'bg-green-500' : 'bg-emerald-600'
+                      }`}
+                      style={{ width: `${(pwdScore / 5) * 100}%` }}
+                    ></div>
+                  </div>
+                  <p className='text-xs mt-1 text-gray-600 dark:text-gray-300'>
+                    {pwdLabel && <>Strength: <span className='font-medium'>{pwdLabel}</span></>}
+                  </p>
+                  <p className='text-[11px] mt-1 text-gray-500 dark:text-gray-400'>
+                    Use 12+ chars with upper & lower case, numbers & symbols for stronger security.
+                  </p>
+                </div>
+              )}
             </div>
             <Button
               gradientDuoTone='purpleToPink'

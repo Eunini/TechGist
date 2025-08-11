@@ -37,6 +37,7 @@ class PostService {
       where[Op.or] = [
         { title: { [Op.iLike]: `%${search}%` } },
         { content: { [Op.iLike]: `%${search}%` } },
+        { slug: { [Op.iLike]: `%${search}%` } },
       ];
     }
     const posts = await Post.findAll({ 

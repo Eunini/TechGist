@@ -4,6 +4,7 @@ import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import Comment from './Comment';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
+import { useToast } from '../../components/UI/ToastProvider';
 
 export default function CommentSection({ postId }) {
   const { currentUser, token } = useSelector((state) => state.user);
@@ -14,9 +15,11 @@ export default function CommentSection({ postId }) {
   const [commentToDelete, setCommentToDelete] = useState(null);
   const navigate = useNavigate();
 
+  const { push } = useToast();
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (comment.length > 200) {
+      push('Comment too long', 'error');
       return;
     }
     try {
@@ -32,7 +35,7 @@ export default function CommentSection({ postId }) {
         }),
       });
       const data = await res.json();
-      if (res.ok) {
+  if (res.ok) {
         setComment('');
         setCommentError(null);
         // The API should return the new comment with author info
@@ -44,11 +47,14 @@ export default function CommentSection({ postId }) {
             profilePicture: currentUser.profilePicture
         };
         setComments([newComment, ...comments]);
+        push('Comment added', 'success');
       } else {
         setCommentError(data.message);
+        push(data.message || 'Failed to add comment', 'error');
       }
     } catch (error) {
       setCommentError(error.message);
+      push(error.message, 'error');
     }
   };
 
@@ -92,12 +98,15 @@ export default function CommentSection({ postId }) {
       });
       if (res.ok) {
         setComments(comments.filter((comment) => comment.id !== commentId));
+        push('Comment deleted', 'success');
       } else {
         const data = await res.json();
         console.log(data.message);
+        push(data.message || 'Failed to delete comment', 'error');
       }
     } catch (error) {
       console.log(error.message);
+      push(error.message, 'error');
     }
   };
 

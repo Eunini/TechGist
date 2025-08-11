@@ -21,6 +21,11 @@ const User = sequelize.define('User', {
       isEmail: true,
     },
   },
+  provider: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: 'local', // 'local' | 'google' (future: github, etc.)
+  },
   password: {
     type: DataTypes.STRING,
     allowNull: false,
@@ -42,15 +47,39 @@ const User = sequelize.define('User', {
 }, {
   hooks: {
     beforeCreate: async (user) => {
+      if (user.email) {
+        user.email = user.email.toLowerCase();
+      }
       if (user.password) {
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
+        try {
+          if (process.env.DEBUG_SIGNUP === 'true') {
+            console.log('[user][beforeCreate] hashing password (len=%d)', user.password.length);
+          }
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.password, salt);
+        } catch (e) {
+          console.error('[user][hash][error][create]', e.message);
+          throw e;
+        }
+      } else if (process.env.DEBUG_SIGNUP === 'true') {
+        console.warn('[user][beforeCreate] empty password field');
       }
     },
     beforeUpdate: async (user) => {
+      if (user.changed('email') && user.email) {
+        user.email = user.email.toLowerCase();
+      }
       if (user.changed('password')) {
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(user.password, salt);
+        try {
+          if (process.env.DEBUG_SIGNUP === 'true') {
+            console.log('[user][beforeUpdate] hashing updated password');
+          }
+          const salt = await bcrypt.genSalt(10);
+          user.password = await bcrypt.hash(user.password, salt);
+        } catch (e) {
+          console.error('[user][hash][error][update]', e.message);
+          throw e;
+        }
       }
     },
   },

@@ -11,3 +11,8 @@ class AppError extends Error {
 }
 
 export default AppError;
+
+// Error handler function to match usage in verifyUser.js
+export function errorHandler(statusCode, message) {
+  return new AppError(message, statusCode);
+}

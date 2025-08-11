@@ -25,3 +25,14 @@ dist-ssr
 *.sln
 *.sw?
 .env
+.env.*
+coverage
+reports
+swagger-output.json
+*.sqlite
+*.db
+*.pid
+/.turbo
+/.cache
+jest-html-reporters-*.html
+/.nyc_output

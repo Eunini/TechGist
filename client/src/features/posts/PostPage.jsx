@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import CallToAction from '../common/CallToAction';
 import CommentSection from '../comments/CommentSection';
+import { Helmet } from 'react-helmet-async';
 import PostCard from './PostCard';
 
 export default function PostPage() {
@@ -16,8 +17,8 @@ export default function PostPage() {
     const fetchPost = async () => {
       try {
         setLoading(true);
-        // Assuming you have a route like /api/posts/slug/:postSlug
-        const res = await fetch(`/api/posts?search=${postSlug}`);
+        // Fetch posts by slug via search param
+        const res = await fetch(`/api/post/getposts?search=${postSlug}`);
         const data = await res.json();
         if (!res.ok) {
           setError(true);
@@ -25,8 +26,8 @@ export default function PostPage() {
           return;
         }
         if (res.ok) {
-          // Assuming the API returns a single post object when queried by slug
-          setPost(data.data.posts[0]);
+          const match = (data.posts || []).find(p => p.slug === postSlug || p.id === postSlug);
+          setPost(match);
           setLoading(false);
           setError(false);
         }
@@ -41,10 +42,10 @@ export default function PostPage() {
   useEffect(() => {
     try {
       const fetchRecentPosts = async () => {
-        const res = await fetch(`/api/posts?limit=3`);
+        const res = await fetch(`/api/post/getposts?limit=3`);
         const data = await res.json();
         if (res.ok) {
-          setRecentPosts(data.data.posts);
+          setRecentPosts(data.posts);
         }
       };
       fetchRecentPosts();
@@ -61,6 +62,13 @@ export default function PostPage() {
     );
   return (
     <main className='p-3 flex flex-col max-w-6xl mx-auto min-h-screen'>
+        <Helmet>
+          <title>{post.title} | TechGist</title>
+          <meta name='description' content={(post.content || '').replace(/<[^>]*>/g, '').slice(0,160)} />
+          <meta property='og:title' content={post.title} />
+          <meta property='og:description' content={(post.content || '').replace(/<[^>]*>/g, '').slice(0,160)} />
+          {post.image && <meta property='og:image' content={post.image} />}
+        </Helmet>
       <h1 className='text-3xl mt-10 p-3 text-center font-serif max-w-2xl mx-auto lg:text-4xl'>
         {post && post.title}
       </h1>
@@ -75,6 +83,7 @@ export default function PostPage() {
       <img
         src={post && post.image}
         alt={post && post.title}
+        loading='lazy'
         className='mt-10 p-3 max-h-[600px] w-full object-cover'
       />
       <div className='flex justify-between p-3 border-b border-slate-500 mx-auto w-full max-w-2xl text-xs'>

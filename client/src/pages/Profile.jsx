@@ -1,5 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
+// NOTE: This Profile page is a PUBLIC user-facing profile (viewing any user's public info & follow state)
+// The dashboard profile (DashProfile) is a PRIVATE authenticated settings panel for the current user.
 import { useParams } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Button } from 'flowbite-react';
@@ -16,20 +18,23 @@ const Profile = () => {
     const fetchUser = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`/api/users/${userId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
+        const res = await fetch(`/api/user/${userId}`, {
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
         });
+        const contentType = res.headers.get('content-type') || '';
+        if (!contentType.includes('application/json')) {
+          const text = await res.text();
+          throw new Error('Unexpected response format');
+        }
         const data = await res.json();
         if (res.ok) {
-          setUser(data.data.user);
-          // Check if the current user is already following this user
-          if (currentUser && data.data.user.Followers.some(follower => follower.id === currentUser.id)) {
+          const fetchedUser = data.data?.user;
+          setUser(fetchedUser);
+          if (currentUser && fetchedUser?.Followers?.some(f => f.id === currentUser.id)) {
             setIsFollowing(true);
           }
         } else {
-          setError(data.message);
+          setError(data.message || 'Failed to load user');
         }
       } catch (err) {
         setError(err.message);
@@ -46,7 +51,8 @@ const Profile = () => {
       return alert('Please sign in to follow users.');
     }
 
-    const endpoint = isFollowing ? `/api/users/unfollow/${userId}` : `/api/users/follow/${userId}`;
+  const endpoint = isFollowing ? `/api/user/unfollow/${userId}` : `/api/user/follow/${userId}`;
+    
     
     try {
       // Optimistic UI update
@@ -65,8 +71,14 @@ const Profile = () => {
           'Authorization': `Bearer ${token}`,
         },
       });
-
-      const data = await res.json();
+      const contentType = res.headers.get('content-type') || '';
+      let data = {};
+      if (contentType.includes('application/json')) {
+        data = await res.json();
+      } else if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text.slice(0,100) || 'Request failed');
+      }
 
       if (!res.ok) {
         // Revert UI on failure

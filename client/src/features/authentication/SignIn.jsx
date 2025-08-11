@@ -8,18 +8,21 @@ import {
   signInFailure,
 } from '../../redux/user/userSlice';
 import OAuth from '../common/OAuth';
+import { useToast } from '../../components/UI/ToastProvider';
 
 export default function SignIn() {
   const [formData, setFormData] = useState({});
   const { loading, error: errorMessage } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { push } = useToast();
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value.trim() });
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.email || !formData.password) {
+      push('Please fill all the fields', 'error');
       return dispatch(signInFailure('Please fill all the fields'));
     }
     try {
@@ -31,15 +34,16 @@ export default function SignIn() {
       });
       const data = await res.json();
       if (data.success === false) {
+        push(data.message || 'Sign in failed', 'error');
         dispatch(signInFailure(data.message));
-      }
-
-      if (res.ok) {
+      } else if (res.ok) {
+        push('Signed in successfully', 'success');
         dispatch(signInSuccess(data));
         navigate('/');
       }
     } catch (error) {
       dispatch(signInFailure(error.message));
+      push(error.message, 'error');
     }
   };
   return (
@@ -53,8 +57,9 @@ export default function SignIn() {
             </span>
           </Link>
           <p className='text-sm mt-5'>
-            This is a demo project. You can sign in with your email and
-            password or with Google.
+            Sign in to access curated insights, projects, and discussions focused on future tech careers: AI/ML engineering, cloud & DevOps, cybersecurity, data platforms, and emerging innovation roles.
+            { ' ' }
+            Use email/password or Google (when available).
           </p>
         </div>
         {/* right */}

@@ -30,14 +30,7 @@ const db = {
 };
 
 db.sync = async () => {
-  try {
-    // In development, you might want to use { force: true } to drop and recreate tables
-    await sequelize.sync({ alter: true }); 
-    console.log('Database synchronized successfully.');
-  } catch (error) {
-    console.error('Unable to synchronize the database:', error);
-    process.exit(1);
-  }
+  console.warn('[db.sync] Deprecated. Use migrations instead: npm run migrate');
 };
 
 export default db;

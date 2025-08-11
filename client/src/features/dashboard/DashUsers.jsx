@@ -13,34 +13,34 @@ export default function DashUsers() {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await fetch(`/api/user/getusers`);
+        const res = await fetch(`/api/user?limit=9&offset=0`);
         const data = await res.json();
         if (res.ok) {
           setUsers(data.users);
-          if (data.users.length < 9) {
+          if (data.users.length < 9 || data.users.length === data.totalUsers) {
             setShowMore(false);
           }
-        }
+        } else { console.log(data.message); }
       } catch (error) {
         console.log(error.message);
       }
     };
-    if (currentUser.isAdmin) {
+    if (currentUser?.role === 'admin') {
       fetchUsers();
     }
-  }, [currentUser._id]);
+  }, [currentUser?.id]);
 
   const handleShowMore = async () => {
     const startIndex = users.length;
     try {
-      const res = await fetch(`/api/user/getusers?startIndex=${startIndex}`);
+      const res = await fetch(`/api/user?limit=9&offset=${startIndex}`);
       const data = await res.json();
       if (res.ok) {
-        setUsers((prev) => [...prev, ...data.users]);
-        if (data.users.length < 9) {
+        setUsers(prev => [...prev, ...data.users]);
+        if (users.length + data.users.length >= data.totalUsers || data.users.length < 9) {
           setShowMore(false);
         }
-      }
+      } else { console.log(data.message); }
     } catch (error) {
       console.log(error.message);
     }
@@ -65,7 +65,7 @@ export default function DashUsers() {
 
   return (
     <div className='table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500'>
-      {currentUser.isAdmin && users.length > 0 ? (
+  {currentUser?.role === 'admin' && users.length > 0 ? (
         <>
           <Table hoverable className='shadow-md'>
             <Table.Head>
