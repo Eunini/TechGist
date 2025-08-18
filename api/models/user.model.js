@@ -44,6 +44,13 @@ const User = sequelize.define('User', {
       isIn: [['user', 'contributor', 'admin']],
     },
   },
+  niche: {
+    type: DataTypes.STRING,
+    allowNull: true,
+    validate: {
+      isIn: [['web-dev', 'mobile-dev', 'game-dev', 'cloud', 'cybersecurity', 'web3', 'ai-ml', 'devops', 'data-science', 'ui-ux']],
+    },
+  },
 }, {
   hooks: {
     beforeCreate: async (user) => {
@@ -88,5 +95,22 @@ const User = sequelize.define('User', {
 User.prototype.isValidPassword = async function(password) {
   return await bcrypt.compare(password, this.password);
 }
+
+User.associate = (models) => {
+  // Defines the association for a user's followers
+  User.belongsToMany(models.User, {
+    as: 'Followers',
+    through: models.Follow,
+    foreignKey: 'followingId',
+    otherKey: 'followerId',
+  });
+  // Defines the association for users that a user is following
+  User.belongsToMany(models.User, {
+    as: 'Following',
+    through: models.Follow,
+    foreignKey: 'followerId',
+    otherKey: 'followingId',
+  });
+};
 
 export default User;

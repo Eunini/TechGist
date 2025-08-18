@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import PropTypes from 'prop-types';
 
 /**
  * Reveal component
@@ -15,7 +16,6 @@ export default function Reveal({
   delay = 0,
   once = true,
   className = '',
-  distance = 32,
   duration = 700,
   threshold = 0.15,
 }) {
@@ -60,3 +60,13 @@ export default function Reveal({
     </Tag>
   );
 }
+
+Reveal.propTypes = {
+  as: PropTypes.elementType,
+  children: PropTypes.node.isRequired,
+  delay: PropTypes.number,
+  once: PropTypes.bool,
+  className: PropTypes.string,
+  duration: PropTypes.number,
+  threshold: PropTypes.number,
+};

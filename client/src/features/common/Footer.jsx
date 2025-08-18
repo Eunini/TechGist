@@ -18,7 +18,7 @@ export default function FooterCom() {
               to='/'
               className='self-center whitespace-nowrap text-lg sm:text-xl font-semibold dark:text-white'
             >
-              <span className='px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white'>
+              <span className='px-2 py-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500 rounded-lg text-white'>
                 TechGist
               </span>
             </Link>

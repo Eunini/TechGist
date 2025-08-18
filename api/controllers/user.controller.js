@@ -36,7 +36,6 @@ export const updateUserProfile = handleAsync(async (req, res) => {
             try {
                 const url = new URL(existingUser.profilePicture);
                 const segments = url.pathname.split('/').filter(Boolean); // ['', 'v123', 'avatars', 'file.png'] -> ['v123','avatars','file.png']
-                const uploadIdx = segments.indexOf('upload');
                 // Cloudinary path looks like /<cloud_name>/image/upload/v123/avatars/filename.ext OR /image/upload/v123/...
                 // We already removed leading empty, so find after 'upload'
                 // Actually segments might be: ['<cloud_name>','image','upload','v123','avatars','filename.png'] depending on URL form
@@ -75,6 +74,7 @@ export const updateUserProfile = handleAsync(async (req, res) => {
             cloudinary.uploader.destroy(oldPublicId)
                 .then(r => {
                     if (process.env.DEBUG_CLOUDINARY === 'true') {
+                        // eslint-disable-next-line no-console
                         console.log('[cloudinary][destroy][ok]', oldPublicId, r.result);
                     }
                 })

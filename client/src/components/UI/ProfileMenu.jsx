@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { FaUser, FaCog, FaSignOutAlt } from 'react-icons/fa';
+import PropTypes from 'prop-types';
+import { FaUser, FaCog, FaSignOutAlt, FaPencilAlt } from 'react-icons/fa';
 
 export default function ProfileMenu({ user, onSignout, onClose, anchorRef }) {
   const menuRef = useRef(null);
@@ -31,6 +32,11 @@ export default function ProfileMenu({ user, onSignout, onClose, anchorRef }) {
           </Link>
         </li>
         <li>
+          <Link to='/create-post' className='flex items-center gap-2 px-4 py-2 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors'>
+            <FaPencilAlt className='text-indigo-500' /> Create Post
+          </Link>
+        </li>
+        <li>
           <Link to={'/dashboard?tab=profile'} className='flex items-center gap-2 px-4 py-2 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors'>
             <FaCog className='text-indigo-500' /> Dashboard
           </Link>
@@ -44,3 +50,17 @@ export default function ProfileMenu({ user, onSignout, onClose, anchorRef }) {
     </div>
   );
 }
+
+ProfileMenu.propTypes = {
+  user: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    username: PropTypes.string.isRequired,
+    email: PropTypes.string.isRequired,
+  }).isRequired,
+  onSignout: PropTypes.func.isRequired,
+  onClose: PropTypes.func.isRequired,
+  anchorRef: PropTypes.oneOfType([
+    PropTypes.func,
+    PropTypes.shape({ current: PropTypes.instanceOf(Element) }),
+  ]),
+};

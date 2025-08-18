@@ -8,7 +8,7 @@ import {
   signInFailure,
 } from '../../redux/user/userSlice';
 import OAuth from '../common/OAuth';
-import { useToast } from '../../components/UI/ToastProvider';
+import { useToast } from '../../hooks/useToast';
 
 export default function SignIn() {
   const [formData, setFormData] = useState({});
@@ -52,7 +52,7 @@ export default function SignIn() {
         {/* left */}
         <div className='flex-1'>
           <Link to='/' className='font-bold dark:text-white text-4xl'>
-            <span className='px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white'>
+            <span className='px-2 py-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500 rounded-lg text-white'>
               TechGist
             </span>
           </Link>
@@ -84,7 +84,7 @@ export default function SignIn() {
               />
             </div>
             <Button
-              gradientDuoTone='purpleToPink'
+              gradientDuoTone='greenToBlue'
               type='submit'
               disabled={loading}
             >

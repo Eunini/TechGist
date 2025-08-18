@@ -6,12 +6,12 @@ import {
   HiOutlineUserGroup,
   HiAnnotation,
   HiChartPie,
+  HiPencilAlt,
 } from 'react-icons/hi';
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { signoutSuccess } from '../../redux/user/userSlice.js';
-import { useDispatch } from 'react-redux';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 export default function DashSidebar() {
   const location = useLocation();
@@ -44,17 +44,6 @@ export default function DashSidebar() {
     <Sidebar className='w-full md:w-56'>
       <Sidebar.Items>
         <Sidebar.ItemGroup className='flex flex-col gap-1'>
-          {currentUser && currentUser.role === 'admin' && (
-            <Link to='/dashboard?tab=dash'>
-              <Sidebar.Item
-                active={tab === 'dash' || !tab}
-                icon={HiChartPie}
-                as='div'
-              >
-                Dashboard
-              </Sidebar.Item>
-            </Link>
-          )}
           <Link to='/dashboard?tab=profile'>
             <Sidebar.Item
               active={tab === 'profile'}
@@ -66,26 +55,41 @@ export default function DashSidebar() {
               Profile
             </Sidebar.Item>
           </Link>
-          {currentUser?.role === 'admin' && (
-            <Link to='/dashboard?tab=posts'>
-              <Sidebar.Item
-                active={tab === 'posts'}
-                icon={HiDocumentText}
-                as='div'
-              >
-                Posts
-              </Sidebar.Item>
-            </Link>
-          )}
-          {currentUser?.role === 'admin' && (
+          <Link to='/create-post'>
+            <Sidebar.Item
+              icon={HiPencilAlt}
+              as='div'
+            >
+              Create Post
+            </Sidebar.Item>
+          </Link>
+          {currentUser && currentUser.role === 'admin' && (
             <>
+              <Link to='/dashboard?tab=dash'>
+                <Sidebar.Item
+                  active={tab === 'dash' || !tab}
+                  icon={HiChartPie}
+                  as='div'
+                >
+                  Admin Dashboard
+                </Sidebar.Item>
+              </Link>
+              <Link to='/dashboard?tab=posts'>
+                <Sidebar.Item
+                  active={tab === 'posts'}
+                  icon={HiDocumentText}
+                  as='div'
+                >
+                  Manage Posts
+                </Sidebar.Item>
+              </Link>
               <Link to='/dashboard?tab=users'>
                 <Sidebar.Item
                   active={tab === 'users'}
                   icon={HiOutlineUserGroup}
                   as='div'
                 >
-                  Users
+                  Manage Users
                 </Sidebar.Item>
               </Link>
               <Link to='/dashboard?tab=comments'>
@@ -94,7 +98,7 @@ export default function DashSidebar() {
                   icon={HiAnnotation}
                   as='div'
                 >
-                  Comments
+                  Manage Comments
                 </Sidebar.Item>
               </Link>
             </>

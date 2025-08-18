@@ -13,15 +13,18 @@ const seedDatabase = async () => {
     // Create Users
     console.log('Creating users...');
     const users = await User.bulkCreate([
-      { username: 'admin_user', email: 'admin@example.com', password: 'password123', role: 'admin' },
-      { username: 'cloud_dev', email: 'cloud@example.com', password: 'password123', role: 'contributor' },
-      { username: 'ai_enthusiast', email: 'ai@example.com', password: 'password123', role: 'contributor' },
-      { username: 'devops_guru', email: 'devops@example.com', password: 'password123', role: 'contributor' },
-      { username: 'tech_reader', email: 'reader@example.com', password: 'password123', role: 'user' },
+      { username: 'admin_user', email: 'admin@example.com', password: 'password123', role: 'admin', niche: 'devops' },
+      { username: 'cloud_dev', email: 'cloud@example.com', password: 'password123', role: 'contributor', niche: 'cloud' },
+      { username: 'ai_enthusiast', email: 'ai@example.com', password: 'password123', role: 'contributor', niche: 'ai-ml' },
+      { username: 'devops_guru', email: 'devops@example.com', password: 'password123', role: 'contributor', niche: 'devops' },
+      { username: 'tech_reader', email: 'reader@example.com', password: 'password123', role: 'user', niche: 'web-dev' },
+      { username: 'game_maker', email: 'game@example.com', password: 'password123', role: 'user', niche: 'game-dev' },
+      { username: 'security_expert', email: 'security@example.com', password: 'password123', role: 'contributor', niche: 'cybersecurity' },
+      { username: 'web3_builder', email: 'web3@example.com', password: 'password123', role: 'user', niche: 'web3' },
     ], { individualHooks: true }); // individualHooks to ensure beforeCreate hook runs for passwords
     console.log(`${users.length} users created.`);
 
-    const [admin, cloudDev, aiGuru, devopsGuru, reader] = users;
+    const [admin, cloudDev, aiGuru, devopsGuru, reader, gameMaker, securityExpert, web3Builder] = users;
 
     // Create Follows
     console.log('Creating follows...');

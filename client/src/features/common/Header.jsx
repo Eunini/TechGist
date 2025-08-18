@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Avatar, Button, Navbar, TextInput } from 'flowbite-react';
+import { Button, Navbar, TextInput } from 'flowbite-react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AiOutlineSearch } from 'react-icons/ai';
-import { FaMoon, FaSun } from 'react-icons/fa';
+import { FaMoon, FaSun, FaPlus } from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
 import { useTheme } from '../../hooks/useTheme';
 import { signoutSuccess } from '../../redux/user/userSlice';
@@ -75,7 +75,7 @@ export default function Header() {
       } transition-all duration-300 ease-in-out border-b border-gray-200 dark:border-gray-700`}
     >
       <Link to='/' className='self-center whitespace-nowrap text-sm sm:text-xl font-semibold dark:text-white'>
-        <span className='px-2 py-1 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-lg text-white'>
+        <span className='px-2 py-1 bg-gradient-to-r from-emerald-500 via-teal-500 to-green-500 rounded-lg text-white'>
           TechGist
         </span>
       </Link>
@@ -101,6 +101,18 @@ export default function Header() {
         >
           {theme === 'light' ? <FaSun /> : <FaMoon />}
         </Button>
+        {currentUser && (
+          <Link to='/create-post'>
+            <Button
+              gradientDuoTone='greenToBlue'
+              className='hidden sm:inline-flex'
+              size='sm'
+            >
+              <FaPlus className='mr-2 h-4 w-4' />
+              Create Post
+            </Button>
+          </Link>
+        )}
         {currentUser ? (
           <div className='relative z-[1100]'>
             <button ref={avatarRef} onClick={toggleMenu} className='focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded-full transition-transform hover:scale-105'>
@@ -117,7 +129,7 @@ export default function Header() {
           </div>
         ) : (
           <Link to='/sign-in'>
-            <Button gradientDuoTone='purpleToBlue' outline>
+            <Button gradientDuoTone='greenToBlue' outline>
               Sign In
             </Button>
           </Link>
@@ -135,6 +147,11 @@ export default function Header() {
         <Navbar.Link active={path === '/explore-topics'} as={'div'}>
           <Link to='/explore-topics'>Explore Topics</Link>
         </Navbar.Link>
+        {currentUser && (
+          <Navbar.Link active={path === '/create-post'} as={'div'}>
+            <Link to='/create-post'>Create Post</Link>
+          </Navbar.Link>
+        )}
       </Navbar.Collapse>
     </Navbar>
   );

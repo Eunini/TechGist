@@ -4,9 +4,6 @@ import AppError from '../utils/error.js';
 const handleAsync = (fn) => (req, res, next) => fn(req, res, next).catch(next);
 
 export const create = handleAsync(async (req, res) => {
-  if (req.user.role !== 'admin') {
-    throw new AppError('You are not allowed to create a post', 403);
-  }
   const { title, content, image, category, topic } = req.body;
   if (!title || !content) {
     throw new AppError('Please provide all required fields', 400);

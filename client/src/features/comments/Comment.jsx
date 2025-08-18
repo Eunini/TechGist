@@ -1,8 +1,9 @@
 import moment from 'moment';
 import { useEffect, useState } from 'react';
-import { FaThumbsUp } from 'react-icons/fa';
 import { useSelector } from 'react-redux';
 import { Button, Textarea } from 'flowbite-react';
+import PropTypes from 'prop-types';
+import InitialAvatar from '../../components/UI/InitialAvatar';
 
 export default function Comment({ comment, onEdit, onDelete }) {
   const [user, setUser] = useState({});
@@ -53,10 +54,11 @@ export default function Comment({ comment, onEdit, onDelete }) {
   return (
     <div className='flex p-4 border-b dark:border-gray-600 text-sm'>
       <div className='flex-shrink-0 mr-3'>
-        <img
-          className='w-10 h-10 rounded-full bg-gray-200'
+        <InitialAvatar
+          name={user.username || 'Anonymous'}
           src={user.profilePicture}
-          alt={user.username}
+          size={40}
+          className='w-10 h-10'
         />
       </div>
       <div className='flex-1'>
@@ -79,7 +81,7 @@ export default function Comment({ comment, onEdit, onDelete }) {
               <Button
                 type='button'
                 size='sm'
-                gradientDuoTone='purpleToBlue'
+                gradientDuoTone='greenToBlue'
                 onClick={handleSave}
               >
                 Save
@@ -87,7 +89,7 @@ export default function Comment({ comment, onEdit, onDelete }) {
               <Button
                 type='button'
                 size='sm'
-                gradientDuoTone='purpleToBlue'
+                gradientDuoTone='greenToBlue'
                 outline
                 onClick={() => setIsEditing(false)}
               >
@@ -125,3 +127,19 @@ export default function Comment({ comment, onEdit, onDelete }) {
     </div>
   );
 }
+
+Comment.propTypes = {
+  comment: PropTypes.shape({
+    id: PropTypes.string.isRequired,
+    content: PropTypes.string.isRequired,
+    createdAt: PropTypes.string.isRequired,
+    authorId: PropTypes.string.isRequired,
+    author: PropTypes.shape({
+      id: PropTypes.string,
+      username: PropTypes.string,
+      profilePicture: PropTypes.string,
+    }),
+  }).isRequired,
+  onEdit: PropTypes.func.isRequired,
+  onDelete: PropTypes.func.isRequired,
+};

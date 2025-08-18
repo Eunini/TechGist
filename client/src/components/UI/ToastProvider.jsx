@@ -1,6 +1,6 @@
-import { createContext, useCallback, useContext, useState } from 'react';
-
-const ToastContext = createContext(null);
+import { useCallback, useState } from 'react';
+import PropTypes from 'prop-types';
+import { ToastContext } from '../../contexts/ToastContext';
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
@@ -32,10 +32,8 @@ export function ToastProvider({ children }) {
   );
 }
 
-export function useToast() {
-  const ctx = useContext(ToastContext);
-  if (!ctx) throw new Error('useToast must be used within ToastProvider');
-  return ctx;
-}
+ToastProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};
 
-// Tailwind animation (global injection if not already) - consumers add in index.css if desired
+// Note: useToast hook moved to hooks/useToast.js for better fast refresh support

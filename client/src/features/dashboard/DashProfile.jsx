@@ -1,8 +1,7 @@
-import { Alert, Button, Modal, TextInput } from 'flowbite-react';
+import { Alert, Button, Modal, TextInput, Select, Label } from 'flowbite-react';
 import {useState, useRef } from 'react';
 import InitialAvatar from '../../components/UI/InitialAvatar';
-import { useSelector } from 'react-redux';
-import { useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
 import {
@@ -14,7 +13,8 @@ import {
   deleteUserFailure,
   signoutSuccess,
 } from '../../redux/user/userSlice.js';
-import { useToast } from '../../components/UI/ToastProvider.jsx';
+import { useToast } from '../../hooks/useToast.js';
+import { resolveProfilePicture } from '../../utils/imageUtils.js';
 
 export default function DashProfile() {
   const { currentUser, error, loading, token } = useSelector((state) => state.user);
@@ -87,11 +87,9 @@ export default function DashProfile() {
       } else {
         const updated = data.data.user;
         if (updated && updated.profilePicture) {
-          // If server returns relative path (/uploads/avatars/...), prepend origin for reliability in dev/prod
-          const isAbsolute = /^(https?:)?\/\//i.test(updated.profilePicture);
-          const base = window.location.origin.replace(/:\d+$/, '') + (import.meta.env.VITE_API_PORT ? `:${import.meta.env.VITE_API_PORT}` : '');
-          const full = isAbsolute ? updated.profilePicture : `${base}${updated.profilePicture.startsWith('/') ? '' : '/'}${updated.profilePicture}`;
-          updated.profilePicture = `${full}?t=${Date.now()}`; // cache bust
+          // Use our safe URL resolution that filters out Windows file paths
+          const resolvedUrl = resolveProfilePicture(updated.profilePicture);
+          updated.profilePicture = resolvedUrl ? `${resolvedUrl}?t=${Date.now()}` : null;
         }
         dispatch(updateSuccess(updated));
         setUpdateUserSuccess("User's profile updated successfully");
@@ -183,6 +181,26 @@ export default function DashProfile() {
           defaultValue={currentUser.bio}
           onChange={handleChange}
         />
+        <div>
+          <Label value='Tech Niche' />
+          <Select
+            id='niche'
+            onChange={handleChange}
+            value={formData.niche || currentUser.niche || ''}
+          >
+            <option value=''>Choose your primary interest...</option>
+            <option value='web-dev'>Web Development</option>
+            <option value='mobile-dev'>Mobile Development</option>
+            <option value='game-dev'>Game Development</option>
+            <option value='cloud'>Cloud Computing</option>
+            <option value='cybersecurity'>Cybersecurity</option>
+            <option value='web3'>Web3 & Blockchain</option>
+            <option value='ai-ml'>AI & Machine Learning</option>
+            <option value='devops'>DevOps & Infrastructure</option>
+            <option value='data-science'>Data Science</option>
+            <option value='ui-ux'>UI/UX Design</option>
+          </Select>
+        </div>
         <TextInput
           type='password'
           id='password'
@@ -192,7 +210,7 @@ export default function DashProfile() {
         <div className='flex justify-end mt-2'>
           <Button
             type='submit'
-            gradientDuoTone='purpleToBlue'
+            gradientDuoTone='greenToBlue'
             disabled={loading}
           >
             {loading ? 'Saving...' : 'Save Changes'}
@@ -256,7 +274,7 @@ export default function DashProfile() {
             </h3>
             <div className='flex justify-center gap-4'>
               <Button color='failure' onClick={handleDeleteUser}>
-                Yes, I'm sure
+                Yes, Im sure
               </Button>
               <Button color='gray' onClick={() => setShowModal(false)}>
                 No, cancel

@@ -9,7 +9,6 @@ import PostCard from './PostCard';
 export default function PostPage() {
   const { postSlug } = useParams();
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [post, setPost] = useState(null);
   const [recentPosts, setRecentPosts] = useState(null);
 
@@ -21,7 +20,6 @@ export default function PostPage() {
         const res = await fetch(`/api/post/getposts?search=${postSlug}`);
         const data = await res.json();
         if (!res.ok) {
-          setError(true);
           setLoading(false);
           return;
         }
@@ -29,10 +27,8 @@ export default function PostPage() {
           const match = (data.posts || []).find(p => p.slug === postSlug || p.id === postSlug);
           setPost(match);
           setLoading(false);
-          setError(false);
         }
       } catch (error) {
-        setError(true);
         setLoading(false);
       }
     };

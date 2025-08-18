@@ -25,15 +25,25 @@ const handleAsync = fn => (req, res, next) => {
 };
 
 export const signup = handleAsync(async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, email, password, niche } = req.body;
     if (!username || !email || !password) {
         throw new AppError('Please provide username, email, and password', 400);
     }
+    
+    // Validate niche if provided
+    const validNiches = ['web-dev', 'mobile-dev', 'game-dev', 'cloud', 'cybersecurity', 'web3', 'ai-ml', 'devops', 'data-science', 'ui-ux'];
+    if (niche && !validNiches.includes(niche)) {
+        throw new AppError('Invalid niche selection', 400);
+    }
+    
     const normalizedEmail = email.toLowerCase();
     if (process.env.DEBUG_SIGNUP === 'true') {
-        console.log('[signup][incoming]', { username, email: normalizedEmail, pwdLen: password.length });
+        console.log('[signup][incoming]', { username, email: normalizedEmail, pwdLen: password.length, niche });
     }
-    const { token, user } = await authService.signup({ username, email: normalizedEmail, password, provider: 'local' });
+    const userData = { username, email: normalizedEmail, password, provider: 'local' };
+    if (niche) userData.niche = niche;
+    
+    const { token, user } = await authService.signup(userData);
     res.status(201).json({
     success: true,
     status: 'success',

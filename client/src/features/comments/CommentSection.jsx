@@ -1,10 +1,11 @@
-import { Alert, Button, Modal, TextInput, Textarea } from 'flowbite-react';
+/* eslint-disable react/prop-types */
+import { Alert, Button, Modal, Textarea } from 'flowbite-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import Comment from './Comment';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
-import { useToast } from '../../components/UI/ToastProvider';
+import { useToast } from '../../hooks/useToast';
 
 export default function CommentSection({ postId }) {
   const { currentUser, token } = useSelector((state) => state.user);
@@ -151,7 +152,7 @@ export default function CommentSection({ postId }) {
             <p className='text-gray-500 text-xs'>
               {200 - comment.length} characters remaining
             </p>
-            <Button outline gradientDuoTone='purpleToBlue' type='submit'>
+            <Button outline gradientDuoTone='greenToBlue' type='submit'>
               Submit
             </Button>
           </div>
@@ -203,7 +204,7 @@ export default function CommentSection({ postId }) {
                 color='failure'
                 onClick={() => handleDelete(commentToDelete)}
               >
-                Yes, I'm sure
+                Yes, Im sure
               </Button>
               <Button color='gray' onClick={() => setShowModal(false)}>
                 No, cancel

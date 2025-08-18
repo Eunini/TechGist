@@ -1,7 +1,6 @@
-
-import React, { useEffect, useState, useCallback } from 'react';
+import { HiOutlineArchive } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
-import { useToast } from '../components/UI/ToastProvider';
+import { useToast } from '../hooks/useToast';
 
 const ExploreTopics = () => {
   const [topics, setTopics] = useState([]);
@@ -72,9 +71,10 @@ const ExploreTopics = () => {
   if (!loading && !error && topics.length === 0) {
     return (
       <div className='container mx-auto px-4 py-20 min-h-screen flex flex-col items-center text-center'>
-        <h1 className='text-4xl font-bold mb-4'>Explore Topics</h1>
+        <HiOutlineArchive className='text-9xl text-gray-300 dark:text-gray-500 mb-4' />
+        <h1 className='text-4xl font-bold mb-4'>No Topics Yet</h1>
         <p className='text-md text-gray-500 mb-8 max-w-xl'>
-          No topics yet. Be the first to spark a conversation in future tech careers—AI/ML, Cloud, DevOps, Cybersecurity, and emerging roles.
+          Be the first to spark a conversation in future tech careers—AI/ML, Cloud, DevOps, Cybersecurity, and emerging roles.
         </p>
         <div className='px-6 py-4 rounded-lg border border-dashed border-teal-400 dark:border-teal-600 bg-white/40 dark:bg-gray-800/40 backdrop-blur-sm'>
           <p className='text-lg font-semibold text-teal-600 dark:text-teal-400'>No topics</p>
@@ -99,7 +99,7 @@ const ExploreTopics = () => {
         </p>
         {showFallback && (
           <div className='mt-4 inline-flex flex-col items-center gap-3'>
-            <p className='text-sm text-red-500 font-medium'>We couldn't load live topics. Showing defaults.</p>
+            <p className='text-sm text-red-500 font-medium'>We couldnt load live topics. Showing defaults.</p>
             <button
               onClick={fetchTopics}
               className='px-4 py-2 text-sm rounded bg-teal-600 text-white hover:bg-teal-700 focus:ring-2 focus:ring-teal-400 focus:outline-none'

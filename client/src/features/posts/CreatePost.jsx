@@ -1,48 +1,78 @@
-import { Alert, Button, Select, TextInput } from 'flowbite-react';
+import { Alert, Button, FileInput, Select, TextInput, Progress } from 'flowbite-react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
+import { app } from '../../firebase';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useToast } from '../../components/UI/ToastProvider';
+import { useToast } from '../../hooks/useToast';
 
 export default function CreatePost() {
+  const [file, setFile] = useState(null);
+  const [imageUploadProgress, setImageUploadProgress] = useState(null);
+  const [imageUploadError, setImageUploadError] = useState(null);
   const [formData, setFormData] = useState({});
   const [publishError, setPublishError] = useState(null);
   const navigate = useNavigate();
   const { token } = useSelector((state) => state.user);
   const { push } = useToast();
 
-  const validateImageUrl = (url) => {
-    if (!url) return true; // optional
+  const handleUpdloadImage = async () => {
     try {
-      new URL(url);
-      return /\.(png|jpe?g|gif|webp|svg)$/i.test(url.split('?')[0]);
-    } catch {
-      return false;
+      if (!file) {
+        setImageUploadError('Please select an image');
+        return;
+      }
+      setImageUploadError(null);
+      const storage = getStorage(app);
+      const fileName = new Date().getTime() + '-' + file.name;
+      const storageRef = ref(storage, fileName);
+      const uploadTask = uploadBytesResumable(storageRef, file);
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress =
+            (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setImageUploadProgress(progress.toFixed(0));
+        },
+        (error) => {
+          setImageUploadError('Image upload failed');
+          setImageUploadProgress(null);
+          console.error('Firebase upload error:', error);
+        },
+        () => {
+          getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+            setImageUploadProgress(null);
+            setImageUploadError(null);
+            setFormData({ ...formData, image: downloadURL });
+          });
+        }
+      );
+    } catch (error) {
+      setImageUploadError('Image upload failed');
+      setImageUploadProgress(null);
+      push('Image upload failed', 'error');
+      console.error('Firebase upload error:', error);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.title || formData.title.length < 5) {
-  push('Title must be at least 5 characters.', 'error');
-  return setPublishError('Title must be at least 5 characters.');
+      push('Title must be at least 5 characters.', 'error');
+      return setPublishError('Title must be at least 5 characters.');
     }
     if (!formData.topic) {
-  push('Please select a topic.', 'error');
-  return setPublishError('Please select a topic.');
+      push('Please select a topic.', 'error');
+      return setPublishError('Please select a topic.');
     }
     if (!formData.content || formData.content.replace(/<[^>]*>/g, '').trim().length < 50) {
-  push('Content must be at least 50 characters.', 'error');
-  return setPublishError('Content must be at least 50 characters.');
-    }
-    if (!validateImageUrl(formData.image)) {
-  push('Invalid image URL', 'error');
-  return setPublishError('Please provide a valid image URL (png,jpg,jpeg,gif,webp,svg).');
+      push('Content must be at least 50 characters.', 'error');
+      return setPublishError('Content must be at least 50 characters.');
     }
     try {
-  const res = await fetch('/api/post/create', {
+      const res = await fetch('/api/post/create', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -58,7 +88,7 @@ export default function CreatePost() {
       }
       setPublishError(null);
       push('Post published!', 'success');
-  navigate(`/post/${data.data.post.slug}`);
+      navigate(`/post/${data.data.post.slug}`);
     } catch (error) {
       setPublishError('Something went wrong');
       push('Something went wrong', 'error');
@@ -82,24 +112,39 @@ export default function CreatePost() {
             id='topic'
             onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
             required
+            value={formData.topic || ''}
           >
-            <option value=''>Select a topic</option>
+            <option value='' disabled>Select a topic</option>
             <option value='Cloud'>Cloud</option>
             <option value='AI/ML'>AI/ML</option>
             <option value='DevOps'>DevOps</option>
             <option value='Future Tech'>Future Tech</option>
           </Select>
         </div>
-        <TextInput
-            type='text'
-            placeholder='Image URL'
-            id='image'
-            onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-        />
-         {formData.image && (
+        <div className='flex gap-4 items-center justify-between border-4 border-teal-500 border-dotted p-3'>
+          <FileInput type='file' id='image' accept='image/*' onChange={(e) => setFile(e.target.files[0])} />
+          <Button
+            type='button'
+            gradientDuoTone='greenToBlue'
+            size='sm'
+            outline
+            onClick={handleUpdloadImage}
+            disabled={imageUploadProgress}
+          >
+            {imageUploadProgress ? (
+              <div className='w-16 h-16'>
+                <Progress progress={imageUploadProgress} size="sm" />
+              </div>
+            ) : (
+              'Upload Image'
+            )}
+          </Button>
+        </div>
+        {imageUploadError && <Alert color='failure'>{imageUploadError}</Alert>}
+        {formData.image && (
           <img
             src={formData.image}
-            alt='preview'
+            alt='upload'
             className='w-full h-72 object-cover'
           />
         )}
@@ -112,7 +157,7 @@ export default function CreatePost() {
             setFormData({ ...formData, content: value });
           }}
         />
-        <Button type='submit' gradientDuoTone='purpleToPink'>
+        <Button type='submit' gradientDuoTone='greenToBlue'>
           Publish
         </Button>
         {publishError && (
