@@ -98,34 +98,7 @@ router.post('/unfollow/:userIdToUnfollow', protect, unfollowUser);
  */
 
 // Admin routes
-router.get('/', protect, restrictTo('admin'), getAllUsers);
-/**
- * @swagger
- * /api/user/:
- *   get:
- *     summary: List all users (admin)
- *     tags: [Users]
- *     security: [{ cookieAuth: [] }]
- *     responses:
- *       200: { description: Success }
- */
-
-router.delete('/:userId', protect, restrictTo('admin'), deleteUser);
-/**
- * @swagger
- * /api/user/{userId}:
- *   delete:
- *     summary: Delete a user (admin)
- *     tags: [Users]
- *     security: [{ cookieAuth: [] }]
- *     parameters:
- *       - in: path
- *         name: userId
- *         required: true
- *         schema: { type: string, format: uuid }
- *     responses:
- *       204: { description: Deleted }
- */
-
+router.route('/').get(protect, restrictTo('admin'), getAllUsers);
+router.route('/:userId').delete(protect, restrictTo('admin'), deleteUser);
 
 export default router;

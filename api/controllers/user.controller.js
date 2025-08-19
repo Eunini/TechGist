@@ -17,8 +17,8 @@ export const getUserProfile = handleAsync(async (req, res) => {
 });
 
 export const updateUserProfile = handleAsync(async (req, res) => {
-    // Ensure users can only update their own profile unless they are an admin
-    if (req.user.id !== req.params.userId && req.user.role !== 'admin') {
+    // Ensure users can only update their own profile
+    if (req.user.id !== req.params.userId) {
         throw new AppError('You are not authorized to update this user.', 403);
     }
     // Grab existing user once so we can possibly clean up old Cloudinary asset
@@ -106,40 +106,16 @@ export const unfollowUser = handleAsync(async (req, res) => {
     });
 });
 
-// Admin-only functionality
 export const getAllUsers = handleAsync(async (req, res) => {
-    // Pagination & metrics
-    const limit = Math.min(parseInt(req.query.limit, 10) || 20, 100);
-    const offset = parseInt(req.query.offset || req.query.startIndex, 10) || 0;
-
-    const { rows, count } = await User.findAndCountAll({
-        limit,
-        offset,
-        order: [['createdAt', 'DESC']],
-        attributes: { exclude: ['password'] }
-    });
-
-    // Count users created in last 30 days
-    const THIRTY_DAYS = 1000 * 60 * 60 * 24 * 30;
-    const since = new Date(Date.now() - THIRTY_DAYS);
-    const lastMonthUsers = await User.count({ where: { createdAt: { [db.Sequelize.Op.gte]: since } } });
-
-    // Decorate with isAdmin boolean for legacy client expectations
-    const users = rows.map(u => ({ ...u.toJSON(), isAdmin: u.role === 'admin' }));
-
+    const users = await userService.getAllUsers();
     res.status(200).json({
         status: 'success',
-        totalUsers: count,
-        lastMonthUsers,
-        results: users.length,
-        users
+        data: { users }
     });
 });
 
 export const deleteUser = handleAsync(async (req, res) => {
-    // You might want to add more logic here, e.g., what happens to their posts.
-    // For now, a simple delete.
-    await User.destroy({ where: { id: req.params.userId } });
+    await userService.deleteUser(req.params.userId);
     res.status(204).json({
         status: 'success',
         data: null
