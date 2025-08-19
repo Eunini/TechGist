@@ -96,21 +96,4 @@ User.prototype.isValidPassword = async function(password) {
   return await bcrypt.compare(password, this.password);
 }
 
-User.associate = (models) => {
-  // Defines the association for a user's followers
-  User.belongsToMany(models.User, {
-    as: 'Followers',
-    through: models.Follow,
-    foreignKey: 'followingId',
-    otherKey: 'followerId',
-  });
-  // Defines the association for users that a user is following
-  User.belongsToMany(models.User, {
-    as: 'Following',
-    through: models.Follow,
-    foreignKey: 'followerId',
-    otherKey: 'followingId',
-  });
-};
-
 export default User;

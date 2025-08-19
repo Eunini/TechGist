@@ -31,7 +31,7 @@ export const updateComment = handleAsync(async (req, res) => {
     if (!content) {
         throw new AppError('Please provide content', 400);
     }
-    const comment = await commentService.updateComment(req.params.commentId, { content }, req.user.id, req.user.role);
+    const comment = await commentService.updateComment(req.params.commentId, { content }, req.user.id);
     res.status(200).json({
         status: 'success',
         data: { comment }
@@ -39,7 +39,7 @@ export const updateComment = handleAsync(async (req, res) => {
 });
 
 export const deleteComment = handleAsync(async (req, res) => {
-    await commentService.deleteComment(req.params.commentId, req.user.id, req.user.role);
+    await commentService.deleteComment(req.params.commentId, req.user.id);
     res.status(204).json({
         status: 'success',
         data: null

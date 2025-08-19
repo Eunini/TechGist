@@ -13,18 +13,21 @@ import { fileURLToPath } from 'url';
 import db from './models/index.js';
 import Post from './models/post.model.js';
 import { setupSwagger } from './swagger.js';
+import cors from 'cors';
 
 dotenv.config();
 
 // Initialize / sync Sequelize models
 if (process.env.NODE_ENV !== 'test') {
-  db.sync();
+  // db.sync(); // Syncing is handled by migrations
 }
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+app.use(cors());
 
 // Security headers
 app.use(helmet());

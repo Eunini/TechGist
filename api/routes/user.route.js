@@ -6,7 +6,8 @@ import {
     followUser,
     unfollowUser,
     getAllUsers,
-    deleteUser
+    deleteUser,
+    getTechNiches
 } from '../controllers/user.controller.js';
 import { protect } from '../middlewares/auth.middleware.js';
 import { restrictTo } from '../middlewares/role.middleware.js';
@@ -21,20 +22,14 @@ const imageFileFilter = (_req, file, cb) => {
     }
     cb(null, true);
 };
-const upload = multer({ storage, fileFilter: imageFileFilter, limits: { fileSize: 500 * 1024 } });
+const upload = multer({ storage, fileFilter: imageFileFilter, limits: { fileSize: 300 * 1024 } });
 
 // Public route: view a user profile
+router.get('/niches', getTechNiches);
 router.get('/:userId', getUserProfile);
 
 // Authenticated update of own (or admin) profile with avatar upload
-router.put('/:userId', protect, (req, res, next) => {
-    upload.single('profilePicture')(req, res, (err) => {
-        if (err) {
-            return res.status(400).json({ success: false, message: err.message || 'Upload error' });
-        }
-        next();
-    });
-}, updateUserProfile);
+router.put('/:userId', protect, upload.single('profilePicture'), updateUserProfile);
 /**
  * @swagger
  * /api/user/{userId}:

@@ -35,19 +35,13 @@ export const getposts = handleAsync(async (req, res) => {
 });
 
 export const deletepost = handleAsync(async (req, res) => {
-  const { postId, userId } = req.params;
-  if (req.user.id !== userId && req.user.role !== 'admin') {
-    throw new AppError('You are not allowed to delete this post', 403);
-  }
-  await postService.deletePost(postId, req.user.id, req.user.role);
+  const { postId } = req.params;
+  await postService.deletePost(postId, req.user.id);
   res.status(200).json({ message: 'The post has been deleted' });
 });
 
 export const updatepost = handleAsync(async (req, res) => {
-  const { postId, userId } = req.params;
-  if (req.user.id !== userId && req.user.role !== 'admin') {
-    throw new AppError('You are not allowed to update this post', 403);
-  }
-  const updated = await postService.updatePost(postId, req.body, req.user.id, req.user.role);
+  const { postId } = req.params;
+  const updated = await postService.updatePost(postId, req.body, req.user.id);
   res.status(200).json({ status: 'success', data: { post: updated } });
 });

@@ -48,7 +48,7 @@ export default function DashSidebar() {
             <Sidebar.Item
               active={tab === 'profile'}
               icon={HiUser}
-              label={currentUser.role === 'admin' ? 'Admin' : currentUser.role}
+              label={currentUser.role}
               labelColor='dark'
               as='div'
             >
@@ -63,45 +63,16 @@ export default function DashSidebar() {
               Create Post
             </Sidebar.Item>
           </Link>
-          {currentUser && currentUser.role === 'admin' && (
-            <>
-              <Link to='/dashboard?tab=dash'>
-                <Sidebar.Item
-                  active={tab === 'dash' || !tab}
-                  icon={HiChartPie}
-                  as='div'
-                >
-                  Admin Dashboard
-                </Sidebar.Item>
-              </Link>
-              <Link to='/dashboard?tab=posts'>
-                <Sidebar.Item
-                  active={tab === 'posts'}
-                  icon={HiDocumentText}
-                  as='div'
-                >
-                  Manage Posts
-                </Sidebar.Item>
-              </Link>
-              <Link to='/dashboard?tab=users'>
-                <Sidebar.Item
-                  active={tab === 'users'}
-                  icon={HiOutlineUserGroup}
-                  as='div'
-                >
-                  Manage Users
-                </Sidebar.Item>
-              </Link>
-              <Link to='/dashboard?tab=comments'>
-                <Sidebar.Item
-                  active={tab === 'comments'}
-                  icon={HiAnnotation}
-                  as='div'
-                >
-                  Manage Comments
-                </Sidebar.Item>
-              </Link>
-            </>
+          {currentUser && (
+            <Link to='/dashboard?tab=posts'>
+              <Sidebar.Item
+                active={tab === 'posts'}
+                icon={HiDocumentText}
+                as='div'
+              >
+                Posts
+              </Sidebar.Item>
+            </Link>
           )}
           <Sidebar.Item
             icon={HiArrowSmRight}

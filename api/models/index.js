@@ -17,8 +17,8 @@ Comment.belongsTo(Post, { foreignKey: 'postId', as: 'post' });
 
 // User-Follower association (self-referencing many-to-many)
 const Follow = sequelize.define('Follow', {}, { timestamps: false });
-User.belongsToMany(User, { as: 'Followers', through: Follow, foreignKey: 'followingId' });
-User.belongsToMany(User, { as: 'Following', through: Follow, foreignKey: 'followerId' });
+User.belongsToMany(User, { as: 'Followers', through: Follow, foreignKey: 'followingId', otherKey: 'followerId' });
+User.belongsToMany(User, { as: 'Following', through: Follow, foreignKey: 'followerId', otherKey: 'followingId' });
 
 
 const db = {

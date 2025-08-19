@@ -117,13 +117,17 @@ export default function Home() {
           </Reveal>
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 justify-items-center'>
             {loading && Array.from({ length: 6 }).map((_, i) => <SkeletonPostCard key={i} />)}
-            {!loading && posts.map((post, i) => (
-              <Reveal key={post._id || post.id} delay={i * 100}>
-                <PostCard post={post} />
-              </Reveal>
-            ))}
+            {!loading && posts && posts.length > 0 ? (
+              posts.map((post, i) => (
+                <Reveal key={post._id || post.id} delay={i * 100}>
+                  <PostCard post={post} />
+                </Reveal>
+              ))
+            ) : (
+              !loading && <p className='text-center col-span-full'>No posts found. Why not create the first one?</p>
+            )}
           </div>
-          {!loading && posts.length > 0 && (
+          {!loading && posts && posts.length > 0 && (
             <Reveal delay={Math.min(posts.length * 100, 800)}>
               <div className='text-center mt-12'>
                 <Link to='/search'>

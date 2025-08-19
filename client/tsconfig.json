@@ -17,5 +17,5 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["node"]
   },
-  "include": ["**/*.js", "**/*.jsx", "**/*.cjs"],
+  "include": ["**/*.js", "**/*.jsx", "**/*.cjs"]
 }

@@ -17,71 +17,55 @@ export const getUserProfile = handleAsync(async (req, res) => {
 });
 
 export const updateUserProfile = handleAsync(async (req, res) => {
-    // Ensure users can only update their own profile
-    if (req.user.id !== req.params.userId) {
+    const { id: currentUserId, role } = req.user;
+    const { userId: targetUserId } = req.params;
+
+    // Users can only update their own profile (admins can update any)
+    if (role !== 'admin' && currentUserId !== targetUserId) {
         throw new AppError('You are not authorized to update this user.', 403);
     }
-    // Grab existing user once so we can possibly clean up old Cloudinary asset
-    const existingUser = await User.findByPk(req.params.userId);
-    if (!existingUser) {
-        throw new AppError('User not found.', 404);
-    }
+
+    // If a file is uploaded, process it with Cloudinary
     if (req.file) {
-        if (!cloudinary.config().cloud_name) {
-            throw new AppError('Cloudinary not configured', 500);
-        }
-        // Best effort derive old Cloudinary public_id for later deletion (only if from our cloud & avatars folder)
-        let oldPublicId = null;
-        if (existingUser.profilePicture && /res\.cloudinary\.com/.test(existingUser.profilePicture) && /\/image\/upload\//.test(existingUser.profilePicture)) {
-            try {
-                const url = new URL(existingUser.profilePicture);
-                const segments = url.pathname.split('/').filter(Boolean); // ['', 'v123', 'avatars', 'file.png'] -> ['v123','avatars','file.png']
-                // Cloudinary path looks like /<cloud_name>/image/upload/v123/avatars/filename.ext OR /image/upload/v123/...
-                // We already removed leading empty, so find after 'upload'
-                // Actually segments might be: ['<cloud_name>','image','upload','v123','avatars','filename.png'] depending on URL form
-                // We need portion after 'upload' (skipping version segment starting with 'v' + digits) until last segment
-                const realUploadIdx = segments.indexOf('upload');
-                if (realUploadIdx !== -1) {
-                    let after = segments.slice(realUploadIdx + 1); // e.g. ['v123','avatars','filename.png']
-                    if (after.length && /^v\d+$/.test(after[0])) after = after.slice(1); // drop version
-                    if (after.length >= 1) {
-                        const fileSegment = after[after.length - 1];
-                        const withoutExt = fileSegment.includes('.') ? fileSegment.substring(0, fileSegment.lastIndexOf('.')) : fileSegment;
-                        const folderParts = after.slice(0, -1); // e.g. ['avatars']
-                        oldPublicId = [...folderParts, withoutExt].join('/'); // avatars/filename
-                        if (!oldPublicId.startsWith('avatars/')) {
-                            oldPublicId = null; // only clean up avatars folder to be safe
-                        }
-                    }
-                }
-            } catch (e) {
-                console.warn('[cloudinary][public_id][parse][warn]', e.message);
+        try {
+            // Cloudinary config check
+            if (!cloudinary.config().cloud_name) {
+                throw new AppError('Cloudinary not configured', 500);
             }
-        }
-        // Convert buffer to base64 data URI for upload (server-side signed upload)
-        const b64 = req.file.buffer.toString('base64');
-        const dataUri = `data:${req.file.mimetype};base64,${b64}`;
-        const uploadRes = await cloudinary.uploader.upload(dataUri, {
-            folder: 'avatars',
-            resource_type: 'image',
-            transformation: [{ width: 256, height: 256, crop: 'fill', gravity: 'face' }],
-            quality: 'auto',
-            fetch_format: 'auto'
-        });
-        req.body.profilePicture = uploadRes.secure_url;
-        // Fire and forget cleanup of old asset AFTER successful new upload
-        if (oldPublicId) {
-            cloudinary.uploader.destroy(oldPublicId)
-                .then(r => {
-                    if (process.env.DEBUG_CLOUDINARY === 'true') {
-                        // eslint-disable-next-line no-console
-                        console.log('[cloudinary][destroy][ok]', oldPublicId, r.result);
-                    }
-                })
-                .catch(err => console.warn('[cloudinary][destroy][error]', oldPublicId, err.message));
+
+            // Convert buffer to base64 data URI for upload
+            const b64 = req.file.buffer.toString('base64');
+            const dataUri = `data:${req.file.mimetype};base64,${b64}`;
+
+            // Upload to Cloudinary
+            const uploadRes = await cloudinary.uploader.upload(dataUri, {
+                folder: 'avatars',
+                resource_type: 'image',
+                transformation: [{ width: 256, height: 256, crop: 'fill', gravity: 'face' }],
+                quality: 'auto',
+                fetch_format: 'auto'
+            });
+
+            req.body.profilePicture = uploadRes.secure_url;
+
+            // Cleanup old avatar (fire and forget)
+            const existingUser = await User.findByPk(targetUserId);
+            if (existingUser?.profilePicture) {
+                const publicIdMatch = existingUser.profilePicture.match(/\/avatars\/([^/.]+)/);
+                if (publicIdMatch?.[1]) {
+                    cloudinary.uploader.destroy(`avatars/${publicIdMatch[1]}`).catch(err => {
+                        console.warn('[cloudinary][destroy][warn]', err.message);
+                    });
+                }
+            }
+        } catch (error) {
+            // Catch Cloudinary or other file processing errors
+            console.error('[cloudinary][upload][error]', error);
+            throw new AppError('Error uploading profile picture.', 500);
         }
     }
-    const user = await userService.updateUserProfile(req.params.userId, req.body);
+
+    const user = await userService.updateUserProfile(targetUserId, req.body);
     res.status(200).json({
         status: 'success',
         data: { user }
@@ -121,3 +105,22 @@ export const deleteUser = handleAsync(async (req, res) => {
         data: null
     });
 });
+
+export const getTechNiches = (req, res) => {
+    const niches = [
+        { value: 'web-dev', label: 'Web Development' },
+        { value: 'mobile-dev', label: 'Mobile Development' },
+        { value: 'game-dev', label: 'Game Development' },
+        { value: 'cloud', label: 'Cloud Computing' },
+        { value: 'cybersecurity', label: 'Cybersecurity' },
+        { value: 'web3', label: 'Web3 & Blockchain' },
+        { value: 'ai-ml', label: 'AI & Machine Learning' },
+        { value: 'devops', label: 'DevOps & Infrastructure' },
+        { value: 'data-science', label: 'Data Science' },
+        { value: 'ui-ux', label: 'UI/UX Design' },
+    ];
+    res.status(200).json({
+        status: 'success',
+        data: { niches }
+    });
+};

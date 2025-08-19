@@ -21,24 +21,24 @@ class CommentService {
     return comments;
   }
 
-  async updateComment(commentId, updateData, userId, userRole) {
+  async updateComment(commentId, updateData, userId) {
     const comment = await Comment.findByPk(commentId);
     if (!comment) {
       throw new AppError('Comment not found.', 404);
     }
-    if (comment.authorId !== userId && userRole !== 'admin') {
+    if (comment.authorId !== userId) {
         throw new AppError('You are not authorized to update this comment.', 403);
     }
     await comment.update(updateData);
     return comment;
   }
 
-  async deleteComment(commentId, userId, userRole) {
+  async deleteComment(commentId, userId) {
     const comment = await Comment.findByPk(commentId);
     if (!comment) {
       throw new AppError('Comment not found.', 404);
     }
-    if (comment.authorId !== userId && userRole !== 'admin') {
+    if (comment.authorId !== userId) {
         throw new AppError('You are not authorized to delete this comment.', 403);
     }
     await comment.destroy();

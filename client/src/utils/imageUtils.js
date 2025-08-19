@@ -14,14 +14,19 @@ export function resolveProfilePicture(profilePicture) {
     return null;
   }
   
+  // If it's a blob URL (local preview), return it directly
+  if (profilePicture.startsWith('blob:')) {
+    return profilePicture;
+  }
+  
   // If already absolute URL (Cloudinary, external), return as-is
   if (/^https?:\/\//i.test(profilePicture)) {
     return profilePicture;
   }
   
   // Handle relative local uploads by making them absolute
-  const apiPort = import.meta.env.VITE_API_PORT;
-  const origin = window.location.origin.replace(/:\d+$/, '');
+  const apiPort = typeof import.meta !== 'undefined' ? import.meta.env.VITE_API_PORT : process.env.VITE_API_PORT;
+  const origin = typeof window !== 'undefined' ? window.location.origin.replace(/:\d+$/, '') : '';
   const baseUrl = apiPort ? `${origin}:${apiPort}` : origin;
   
   // Ensure leading slash for relative paths

@@ -116,17 +116,16 @@ router.get('/topics', getTopics);
  */
 const uuidMsg = 'Invalid UUID format';
 router.delete(
-  '/deletepost/:postId/:userId',
+  '/deletepost/:postId',
   verifyToken,
   collect([
     param('postId').isUUID().withMessage(uuidMsg),
-    param('userId').isUUID().withMessage(uuidMsg),
   ]),
   deletepost
 );
 /**
  * @swagger
- * /api/post/deletepost/{postId}/{userId}:
+ * /api/post/deletepost/{postId}:
  *   delete:
  *     summary: Delete a post
  *     tags: [Posts]
@@ -136,20 +135,15 @@ router.delete(
  *         name: postId
  *         required: true
  *         schema: { type: string, format: uuid }
- *       - in: path
- *         name: userId
- *         required: true
- *         schema: { type: string, format: uuid }
  *     responses:
  *       200: { description: Deleted }
  *       403: { description: Forbidden }
  */
 router.put(
-  '/updatepost/:postId/:userId',
+  '/updatepost/:postId',
   verifyToken,
   collect([
     param('postId').isUUID().withMessage(uuidMsg),
-    param('userId').isUUID().withMessage(uuidMsg),
     body('title').optional().isLength({ min: 5 }).withMessage('Title must be at least 5 chars'),
     body('content').optional().isLength({ min: 50 }).withMessage('Content must be at least 50 chars'),
     body('image').optional().isURL().withMessage('Image must be a valid URL'),
@@ -158,7 +152,7 @@ router.put(
 );
 /**
  * @swagger
- * /api/post/updatepost/{postId}/{userId}:
+ * /api/post/updatepost/{postId}:
  *   put:
  *     summary: Update a post
  *     tags: [Posts]
@@ -166,10 +160,6 @@ router.put(
  *     parameters:
  *       - in: path
  *         name: postId
- *         required: true
- *         schema: { type: string, format: uuid }
- *       - in: path
- *         name: userId
  *         required: true
  *         schema: { type: string, format: uuid }
  *     requestBody:
@@ -183,7 +173,7 @@ router.put(
  *               image: { type: string }
  *     responses:
  *       200: { description: Updated }
- *       403: { description: Forbidden }
+ *       4.03: { description: Forbidden }
  */
 
 export default router;

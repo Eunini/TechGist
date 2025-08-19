@@ -9,7 +9,6 @@ import SignUp from './features/authentication/SignUp';
 import Header from './features/common/Header';
 import Footer from './features/common/Footer';
 import PrivateRoute from './features/common/PrivateRoute';
-import OnlyAdminPrivateRoute from './features/common/OnlyAdminPrivateRoute';
 import CreatePost from './features/posts/CreatePost';
 import UpdatePost from './features/posts/UpdatePost';
 import PostPage from './features/posts/PostPage';

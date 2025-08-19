@@ -24,7 +24,7 @@ export default function CommentSection({ postId }) {
       return;
     }
     try {
-      const res = await fetch('/api/comments', {
+      const res = await fetch('/api/comment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -62,7 +62,7 @@ export default function CommentSection({ postId }) {
   useEffect(() => {
     const getComments = async () => {
       try {
-        const res = await fetch(`/api/comments/post/${postId}`);
+        const res = await fetch(`/api/comment/post/${postId}`);
         if (res.ok) {
           const data = await res.json();
           setComments(data.data.comments);
@@ -91,7 +91,7 @@ export default function CommentSection({ postId }) {
         navigate('/sign-in');
         return;
       }
-      const res = await fetch(`/api/comments/${commentId}`, {
+      const res = await fetch(`/api/comment/${commentId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -153,7 +153,7 @@ export default function CommentSection({ postId }) {
               {200 - comment.length} characters remaining
             </p>
             <Button outline gradientDuoTone='greenToBlue' type='submit'>
-              Submit
+              Comment
             </Button>
           </div>
           {commentError && (

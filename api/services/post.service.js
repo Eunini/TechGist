@@ -7,7 +7,13 @@ class PostService {
   async createPost(postData) {
     // Simple slug generation
     const slug = postData.title.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-    const post = await Post.create({ ...postData, slug });
+    const existingPost = await Post.findOne({ where: { slug } });
+    if (existingPost) {
+      postData.slug = `${slug}-${Date.now()}`;
+    } else {
+      postData.slug = slug;
+    }
+    const post = await Post.create(postData);
     return post;
   }
 
@@ -42,18 +48,18 @@ class PostService {
     }
     const posts = await Post.findAll({ 
         where,
-        include: [{ model: User, as: 'author', attributes: ['id', 'username'] }],
+        include: [{ model: User, as: 'author', attributes: ['id', 'username'], required: false }],
         order: [['createdAt', 'DESC']]
     });
     return posts;
   }
 
-  async updatePost(postId, updateData, userId, userRole) {
+  async updatePost(postId, updateData, userId) {
     const post = await Post.findByPk(postId);
     if (!post) {
       throw new AppError('Post not found.', 404);
     }
-    if (post.authorId !== userId && userRole !== 'admin') {
+    if (post.authorId !== userId) {
         throw new AppError('You are not authorized to update this post.', 403);
     }
     if (updateData.title) {
@@ -63,12 +69,12 @@ class PostService {
     return post;
   }
 
-  async deletePost(postId, userId, userRole) {
+  async deletePost(postId, userId) {
     const post = await Post.findByPk(postId);
     if (!post) {
       throw new AppError('Post not found.', 404);
     }
-    if (post.authorId !== userId && userRole !== 'admin') {
+    if (post.authorId !== userId) {
         throw new AppError('You are not authorized to delete this post.', 403);
     }
     await post.destroy();

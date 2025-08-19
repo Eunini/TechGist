@@ -1,5 +1,5 @@
 import { Alert, Button, Modal, TextInput, Select, Label } from 'flowbite-react';
-import {useState, useRef } from 'react';
+import {useState, useRef, useEffect } from 'react';
 import InitialAvatar from '../../components/UI/InitialAvatar';
 import { useSelector, useDispatch } from 'react-redux';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
@@ -23,9 +23,25 @@ export default function DashProfile() {
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({});
   const [preview, setPreview] = useState(null);
+  const [techNiches, setTechNiches] = useState([]);
   const fileInputRef = useRef(null);
   const dispatch = useDispatch();
   const { push } = useToast();
+
+  useEffect(() => {
+    const fetchTechNiches = async () => {
+      try {
+        const res = await fetch('/api/user/niches');
+        const data = await res.json();
+        if (res.ok) {
+          setTechNiches(data.data.niches);
+        }
+      } catch (error) {
+        console.log(error.message);
+      }
+    };
+    fetchTechNiches();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
@@ -189,16 +205,11 @@ export default function DashProfile() {
             value={formData.niche || currentUser.niche || ''}
           >
             <option value=''>Choose your primary interest...</option>
-            <option value='web-dev'>Web Development</option>
-            <option value='mobile-dev'>Mobile Development</option>
-            <option value='game-dev'>Game Development</option>
-            <option value='cloud'>Cloud Computing</option>
-            <option value='cybersecurity'>Cybersecurity</option>
-            <option value='web3'>Web3 & Blockchain</option>
-            <option value='ai-ml'>AI & Machine Learning</option>
-            <option value='devops'>DevOps & Infrastructure</option>
-            <option value='data-science'>Data Science</option>
-            <option value='ui-ux'>UI/UX Design</option>
+            {techNiches.map((niche) => (
+              <option key={niche.value} value={niche.value}>
+                {niche.label}
+              </option>
+            ))}
           </Select>
         </div>
         <TextInput
