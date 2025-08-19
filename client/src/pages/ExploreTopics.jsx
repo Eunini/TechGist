@@ -41,7 +41,7 @@ const ExploreTopics = () => {
     } finally {
       setLoading(false);
     }
-  }, [toast, loading]);
+  }, [toast]);
 
   useEffect(() => {
     // initial load only
