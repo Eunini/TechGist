@@ -25,7 +25,8 @@ export function resolveProfilePicture(profilePicture) {
   }
   
   // Handle relative local uploads by making them absolute
-  const apiPort = typeof import.meta !== 'undefined' ? import.meta.env.VITE_API_PORT : process.env.VITE_API_PORT;
+  const isVite = typeof import.meta !== 'undefined' && import.meta.env;
+  const apiPort = isVite ? import.meta.env.VITE_API_PORT : process.env.VITE_API_PORT;
   const origin = typeof window !== 'undefined' ? window.location.origin.replace(/:\d+$/, '') : '';
   const baseUrl = apiPort ? `${origin}:${apiPort}` : origin;
   

@@ -91,7 +91,7 @@ export const googleAuth = handleAsync(async (req, res) => {
         // Generate a random password so account can still use password reset flow if implemented later
         const randomPassword = crypto.randomBytes(16).toString('hex');
         user = await db.User.create({
-            username: uniqueUsername(displayName),
+            username: await uniqueUsername(displayName),
             email: verifiedEmail.toLowerCase(),
             password: randomPassword,
             provider: 'google',
@@ -107,7 +107,23 @@ export const googleAuth = handleAsync(async (req, res) => {
 });
 
 // Helper: ensure username uniqueness by appending numeric suffix if needed
-function uniqueUsername(base) {
+async function uniqueUsername(base) {
     const clean = base.toLowerCase().replace(/[^a-z0-9]+/g, '').slice(0, 20) || 'user';
-    return clean + Math.floor(Math.random() * 10000).toString().padStart(2, '0');
+    let username = clean;
+    let isUnique = false;
+    let attempts = 0;
+    while(!isUnique && attempts < 100) {
+        const existing = await db.User.findOne({ where: { username }});
+        if (!existing) {
+            isUnique = true;
+        } else {
+            username = clean + Math.floor(Math.random() * 10000).toString().padStart(2, '0');
+        }
+        attempts++;
+    }
+    if (!isUnique) {
+        // Fallback for extreme cases
+        return clean + Date.now();
+    }
+    return username;
 }

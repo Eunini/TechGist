@@ -25,6 +25,11 @@ export const updateUserProfile = handleAsync(async (req, res) => {
         throw new AppError('You are not authorized to update this user.', 403);
     }
 
+    const existingUser = await User.findByPk(targetUserId);
+    if (!existingUser) {
+        throw new AppError('User not found.', 404);
+    }
+
     // If a file is uploaded, process it with Cloudinary
     if (req.file) {
         try {
@@ -49,7 +54,6 @@ export const updateUserProfile = handleAsync(async (req, res) => {
             req.body.profilePicture = uploadRes.secure_url;
 
             // Cleanup old avatar (fire and forget)
-            const existingUser = await User.findByPk(targetUserId);
             if (existingUser?.profilePicture) {
                 const publicIdMatch = existingUser.profilePicture.match(/\/avatars\/([^/.]+)/);
                 if (publicIdMatch?.[1]) {
@@ -62,6 +66,17 @@ export const updateUserProfile = handleAsync(async (req, res) => {
             // Catch Cloudinary or other file processing errors
             console.error('[cloudinary][upload][error]', error);
             throw new AppError('Error uploading profile picture.', 500);
+        }
+    } else if (req.body.profilePicture === '') {
+        // Handle explicit deletion of profile picture
+        req.body.profilePicture = null;
+        if (existingUser?.profilePicture) {
+            const publicIdMatch = existingUser.profilePicture.match(/\/avatars\/([^/.]+)/);
+            if (publicIdMatch?.[1]) {
+                cloudinary.uploader.destroy(`avatars/${publicIdMatch[1]}`).catch(err => {
+                    console.warn('[cloudinary][destroy][warn]', err.message);
+                });
+            }
         }
     }
 

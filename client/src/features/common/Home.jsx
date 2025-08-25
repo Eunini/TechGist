@@ -5,10 +5,9 @@ import { useSelector } from 'react-redux';
 import { HiOutlineArrowRight, HiOutlineCode, HiOutlineUsers, HiOutlineTrendingUp } from 'react-icons/hi';
 import PostCard from '../posts/PostCard';
 import SkeletonPostCard from '../../components/UI/SkeletonPostCard';
-import AnimatedBackground from '../../components/AnimatedBackground';
 import CommunityCTA from '../../components/UI/CommunityCTA';
 import Reveal from '../../components/UI/Reveal';
-import '../../components/AnimatedBackground.css';
+import AnimatedBackground from '../../components/AnimatedBackground'; // <-- Import here
 
 export default function Home() {
   const [posts, setPosts] = useState([]);
@@ -45,8 +44,11 @@ export default function Home() {
   return (
     <div className='min-h-screen flex flex-col'>
       {/* Hero Section */}
-      <div className='relative flex flex-col items-center justify-center text-center px-4 py-24 sm:py-32 lg:py-40 overflow-hidden bg-white dark:bg-transparent'>
-        {theme === 'dark' && <AnimatedBackground />}
+      <div className='relative flex flex-col items-center justify-center text-center px-4 py-24 sm:py-32 lg:py-40 overflow-hidden bg-white dark:bg-gray-900'>
+        {/* Animated Background */}
+        <div className="absolute inset-0 z-0 pointer-events-none">
+          <AnimatedBackground />
+        </div>
         <div className='relative z-10'>
           <Reveal>
             <h1 className='text-4xl md:text-6xl font-extrabold mb-4 tracking-tight text-gray-900 dark:text-white text-shadow-lg'>
@@ -141,7 +143,7 @@ export default function Home() {
         </div>
       </div>
 
-  <Reveal><CommunityCTA /></Reveal>
+      <Reveal><CommunityCTA /></Reveal>
     </div>
   );
 }

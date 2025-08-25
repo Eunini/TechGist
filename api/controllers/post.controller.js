@@ -20,9 +20,9 @@ export const create = handleAsync(async (req, res) => {
 });
 
 export const getposts = handleAsync(async (req, res) => {
-  const { limit = 20, startIndex = 0, order = 'desc', searchTerm, topic } = req.query;
+  const { limit = 20, startIndex = 0, order = 'desc', searchTerm, topic, postId } = req.query;
   // Basic filtering using service
-  const posts = await postService.getAllPosts({ search: searchTerm, topic });
+  const posts = await postService.getAllPosts({ search: searchTerm, topic, postId });
   // Stats
   const totalPosts = posts.length;
   const oneMonthAgo = new Date();

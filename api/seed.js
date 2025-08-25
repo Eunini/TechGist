@@ -39,11 +39,60 @@ const seedDatabase = async () => {
     // Create Posts
     console.log('Creating posts...');
     const posts = await Post.bulkCreate([
-      { title: 'Getting Started with AWS Lambda', content: 'A deep dive into serverless computing with AWS...', topic: 'Cloud', authorId: cloudDev.id, slug: 'getting-started-with-aws-lambda' },
-      { title: 'The Rise of Large Language Models', content: 'Exploring the impact of LLMs like GPT-4.', topic: 'AI/ML', authorId: aiGuru.id, slug: 'the-rise-of-large-language-models' },
-      { title: 'CI/CD Pipelines with Jenkins and Docker', content: 'Automating your development workflow.', topic: 'DevOps', authorId: devopsGuru.id, slug: 'cicd-pipelines-with-jenkins-and-docker' },
-      { title: 'Quantum Computing Explained', content: 'What is quantum computing and how will it change the world?', topic: 'Future Tech', authorId: admin.id, slug: 'quantum-computing-explained' },
-    ]);
+  { 
+    title: 'Mastering AWS Lambda: A Practical Guide to Serverless Computing', 
+    content: `AWS Lambda has transformed cloud development by removing the need to manage servers. 
+With Lambda, you write your code, define an event trigger, and let AWS handle provisioning, scaling, and high availability. 
+This article takes a deep dive into how serverless computing works, when to use it, and how to avoid common pitfalls. 
+We’ll cover everything from building your first Lambda function to integrating with services like API Gateway, S3, and DynamoDB. 
+Along the way, you’ll learn best practices for monitoring, debugging, and optimizing costs, plus real-world examples 
+such as running serverless APIs, processing images, and handling event-driven workflows.`,
+    topic: 'Cloud',
+    authorId: cloudDev.id,
+    slug: 'mastering-aws-lambda-serverless-guide' 
+  },
+
+  { 
+    title: 'The Rise of Large Language Models: How AI is Reshaping Our World', 
+    content: `Large Language Models (LLMs) like GPT-4 have become the cornerstone of modern AI applications. 
+From chatbots and code assistants to creative tools and enterprise automation, LLMs are changing how humans 
+interact with technology. This post explores the evolution of LLMs, their architecture, and the data 
+requirements that make them possible. We’ll also discuss the opportunities they unlock in fields like 
+education, healthcare, and productivity, while examining the ethical challenges around bias, misinformation, 
+and responsible AI use. If you want to understand where the future of AI is headed, this article breaks it down.`,
+    topic: 'AI/ML',
+    authorId: aiGuru.id,
+    slug: 'the-rise-of-large-language-models' 
+  },
+
+  { 
+    title: 'CI/CD Pipelines with Jenkins and Docker: Automating Your Development Workflow', 
+    content: `Modern software development demands speed, consistency, and reliability—and that’s where CI/CD pipelines shine. 
+By combining Jenkins with Docker, developers can automate building, testing, and deploying applications 
+in a repeatable, scalable way. This guide walks through setting up a Jenkins pipeline, containerizing applications 
+with Docker, and integrating automated testing into your workflow. We’ll explore pipeline-as-code concepts, 
+best practices for managing environments, and how to achieve zero-downtime deployments. Whether you’re new to DevOps 
+or looking to optimize your delivery process, this article shows you how to put Jenkins and Docker to work together.`,
+    topic: 'DevOps',
+    authorId: devopsGuru.id,
+    slug: 'cicd-pipelines-with-jenkins-and-docker' 
+  },
+
+  { 
+    title: 'Quantum Computing Explained: Unlocking the Future of Technology', 
+    content: `Quantum computing represents a fundamental shift in how we process information. 
+Unlike classical computers, which use bits, quantum machines harness qubits that can exist in multiple states simultaneously. 
+This gives them the potential to solve problems in cryptography, optimization, and drug discovery that are currently impossible 
+for classical systems. In this article, we’ll break down the key principles of quantum mechanics that power these machines, 
+survey the current state of quantum hardware, and explore what companies like IBM, Google, and startups are building. 
+We’ll also look ahead at the challenges of error correction, scalability, and what a quantum-powered world might look like 
+over the next decade.`,
+    topic: 'Future Tech',
+    authorId: admin.id,
+    slug: 'quantum-computing-explained' 
+  },
+]);
+
     console.log(`${posts.length} posts created.`);
     
     const [lambdaPost, llmPost] = posts;

@@ -28,8 +28,8 @@ const Post = sequelize.define('Post', {
     type: DataTypes.STRING,
     defaultValue: 'uncategorized',
   },
-  topic: {
-    type: DataTypes.STRING,
+  topicId: {
+    type: DataTypes.INTEGER,
     allowNull: true,
   },
   slug: {

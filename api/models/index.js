@@ -2,10 +2,15 @@ import sequelize from '../config/database.js';
 import User from './user.model.js';
 import Post from './post.model.js';
 import Comment from './comment.model.js';
+import Topic from './topic.model.js';
 
 // User-Post association
 User.hasMany(Post, { foreignKey: 'authorId', as: 'posts' });
 Post.belongsTo(User, { foreignKey: 'authorId', as: 'author' });
+
+// Topic-Post association
+Topic.hasMany(Post, { foreignKey: 'topicId', as: 'posts' });
+Post.belongsTo(Topic, { foreignKey: 'topicId', as: 'topic' });
 
 // User-Comment association
 User.hasMany(Comment, { foreignKey: 'authorId', as: 'comments' });
@@ -27,6 +32,7 @@ const db = {
   Post,
   Comment,
   Follow,
+  Topic,
 };
 
 db.sync = async () => {

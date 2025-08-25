@@ -2,6 +2,7 @@ import { Alert, Button, Label, Spinner, TextInput } from 'flowbite-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { HiEye, HiEyeOff } from 'react-icons/hi';
 import {
   signInStart,
   signInSuccess,
@@ -12,6 +13,7 @@ import { useToast } from '../../hooks/useToast';
 
 export default function SignIn() {
   const [formData, setFormData] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
   const { loading, error: errorMessage } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -74,14 +76,22 @@ export default function SignIn() {
                 onChange={handleChange}
               />
             </div>
-            <div>
+            <div className='relative'>
               <Label value='Your password' />
               <TextInput
-                type='password'
+                type={showPassword ? 'text' : 'password'}
                 placeholder='**********'
                 id='password'
                 onChange={handleChange}
               />
+              <button
+                type='button'
+                onClick={() => setShowPassword(!showPassword)}
+                className='absolute right-3 top-1/2 -translate-y-1/2 transform cursor-pointer'
+                style={{ top: '70%' }}
+              >
+                {showPassword ? <HiEyeOff /> : <HiEye />}
+              </button>
             </div>
             <Button
               gradientDuoTone='greenToBlue'

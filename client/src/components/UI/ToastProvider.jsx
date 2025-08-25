@@ -13,7 +13,7 @@ export function ToastProvider({ children }) {
   return (
     <ToastContext.Provider value={{ push }}>
       {children}
-      <div className='fixed z-[9999] top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col gap-2 w-72'>
+      <div className='fixed z-[9999] top-4 left-1/2 -translate-x-1/2 flex flex-col gap-2 w-72'>
         {toasts.map((t) => (
           <button
             key={t.id}

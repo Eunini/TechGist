@@ -1,9 +1,10 @@
-import { Alert, Button, Modal, TextInput, Select, Label } from 'flowbite-react';
-import {useState, useRef, useEffect } from 'react';
-import InitialAvatar from '../../components/UI/InitialAvatar';
+import { FaEye, FaEyeSlash, FaTrash } from 'react-icons/fa';
 import { useSelector, useDispatch } from 'react-redux';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
 import { Link } from 'react-router-dom';
+import { Alert, Button, Modal, TextInput, Select, Label } from 'flowbite-react';
+import {useState, useRef, useEffect } from 'react';
+import InitialAvatar from '../../components/UI/InitialAvatar';
 import {
   updateStart,
   updateSuccess,
@@ -21,8 +22,10 @@ export default function DashProfile() {
   const [updateUserSuccess, setUpdateUserSuccess] = useState(null);
   const [updateUserError, setUpdateUserError] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [showDeletePicModal, setShowDeletePicModal] = useState(false);
   const [formData, setFormData] = useState({});
   const [preview, setPreview] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [techNiches, setTechNiches] = useState([]);
   const fileInputRef = useRef(null);
   const dispatch = useDispatch();
@@ -51,15 +54,59 @@ export default function DashProfile() {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      setUpdateUserError('File must be an image');
+      push('File must be an image', 'error');
       return;
     }
     if (file.size > 300 * 1024) { // server limit 300KB
-      setUpdateUserError('Image too large (max 300KB). Please compress.');
+      push('Image too large (max 300KB). Please compress.', 'error');
       return;
     }
     setPreview(URL.createObjectURL(file));
-    setFormData(prev => ({ ...prev, profilePictureFile: file }));
+    setFormData(prev => ({ ...prev, profilePictureFile: file, profilePicture: '' }));
+  };
+
+  const handleDeleteProfilePic = () => {
+    setPreview(null);
+    setFormData(prev => ({ ...prev, profilePictureFile: null, profilePicture: '' }));
+  };
+
+  const handleConfirmDeleteProfilePic = async () => {
+    setShowDeletePicModal(false);
+    handleDeleteProfilePic(); // Update UI immediately
+
+    try {
+      dispatch(updateStart());
+      const fd = new FormData();
+      fd.append('profilePicture', '');
+
+      const res = await fetch(`/api/user/${currentUser.id}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: fd,
+      });
+
+      const ct = res.headers.get('content-type') || '';
+      let data;
+      if (ct.includes('application/json')) {
+        data = await res.json();
+      } else {
+        const text = await res.text();
+        data = { message: text.slice(0, 200) || 'Unexpected response' };
+      }
+
+      if (!res.ok) {
+        dispatch(updateFailure(data.message));
+        push(data.message || 'Update failed', 'error');
+      } else {
+        dispatch(updateSuccess({ ...currentUser, profilePicture: null }));
+        push('Profile picture removed', 'success');
+      }
+    } catch (error) {
+      dispatch(updateFailure(error.message));
+      push(error.message || 'Update error', 'error');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -73,14 +120,17 @@ export default function DashProfile() {
     try {
       dispatch(updateStart());
       const fd = new FormData();
-      Object.entries(formData).forEach(([k,v]) => {
-        if (v === undefined || v === null || v === '') return;
-        if (k === 'profilePictureFile') {
-          fd.append('profilePicture', v); // field name expected by backend multer config
-        } else {
-          fd.append(k, v);
+      for (const [key, value] of Object.entries(formData)) {
+        if (value !== undefined && value !== null) {
+          if (key === 'profilePictureFile' && value) {
+            fd.append('profilePicture', value);
+          } else if (key === 'profilePicture' && value === '') {
+            fd.append('profilePicture', '');
+          } else if (key !== 'profilePictureFile' && key !== 'profilePicture') {
+            fd.append(key, value);
+          }
         }
-      });
+      }
       const res = await fetch(`/api/user/${currentUser.id}`, {
         method: 'PUT',
         headers: {
@@ -108,7 +158,6 @@ export default function DashProfile() {
           updated.profilePicture = resolvedUrl ? `${resolvedUrl}?t=${Date.now()}` : null;
         }
         dispatch(updateSuccess(updated));
-        setUpdateUserSuccess("User's profile updated successfully");
         push('Profile updated', 'success');
       }
     } catch (error) {
@@ -158,7 +207,7 @@ export default function DashProfile() {
     <div className='max-w-lg mx-auto p-3 w-full'>
       <h1 className='my-7 text-center font-semibold text-3xl'>Profile</h1>
       <form onSubmit={handleSubmit} className='flex flex-col gap-4'>
-        <div className='self-center'>
+        <div className='self-center relative'>
           <InitialAvatar
             name={currentUser.username}
             src={preview || currentUser.profilePicture}
@@ -174,8 +223,18 @@ export default function DashProfile() {
             className='hidden'
             onChange={handleImageSelect}
           />
+          {(preview || currentUser.profilePicture) && (
+            <Button
+              pill
+              color='failure'
+              className='absolute top-0 right-0 rounded-full w-8 h-8 flex items-center justify-center'
+              onClick={() => setShowDeletePicModal(true)}
+            >
+              <FaTrash />
+            </Button>
+          )}
         </div>
-        <p className='text-center text-xs text-gray-500 -mt-2'>PNG/JPG, &lt; 120KB recommended</p>
+        {/* <p className='text-center text-xs text-gray-500 -mt-2'>PNG/JPG, &lt; 120KB recommended</p> */}
         <TextInput
           type='text'
           id='username'
@@ -212,12 +271,20 @@ export default function DashProfile() {
             ))}
           </Select>
         </div>
-        <TextInput
-          type='password'
-          id='password'
-          placeholder='password (leave blank to keep)'
-          onChange={handleChange}
-        />
+        <div className='relative'>
+          <TextInput
+            type={showPassword ? 'text' : 'password'}
+            id='password'
+            placeholder='password (leave blank to keep)'
+            onChange={handleChange}
+          />
+          <div
+            className='absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer'
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? <FaEyeSlash /> : <FaEye />}
+          </div>
+        </div>
         <div className='flex justify-end mt-2'>
           <Button
             type='submit'
@@ -255,16 +322,6 @@ export default function DashProfile() {
           <span className='text-sm font-semibold'>Sign Out</span>
         </Button>
       </div>
-      {updateUserSuccess && (
-        <Alert color='success' className='mt-5'>
-          {updateUserSuccess}
-        </Alert>
-      )}
-      {updateUserError && (
-        <Alert color='failure' className='mt-5'>
-          {updateUserError}
-        </Alert>
-      )}
       {error && (
         <Alert color='failure' className='mt-5'>
           {error}
@@ -288,6 +345,30 @@ export default function DashProfile() {
                 Yes, Im sure
               </Button>
               <Button color='gray' onClick={() => setShowModal(false)}>
+                No, cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
+      <Modal
+        show={showDeletePicModal}
+        onClose={() => setShowDeletePicModal(false)}
+        popup
+        size='md'
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className='text-center'>
+            <HiOutlineExclamationCircle className='h-14 w-14 text-gray-400 dark:text-gray-200 mb-4 mx-auto' />
+            <h3 className='mb-5 text-lg text-gray-500 dark:text-gray-400'>
+              Are you sure you want to delete your profile picture?
+            </h3>
+            <div className='flex justify-center gap-4'>
+              <Button color='failure' onClick={handleConfirmDeleteProfilePic}>
+                Yes, Im sure
+              </Button>
+              <Button color='gray' onClick={() => setShowDeletePicModal(false)}>
                 No, cancel
               </Button>
             </div>

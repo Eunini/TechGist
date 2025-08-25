@@ -94,13 +94,22 @@ if (process.env.DEBUG_ENV === 'true') {
   console.log('[env] Debug snapshot:', dbg);
 }
 
+const dbConfig = {
+  username: DB_USER,
+  password: DB_PASSWORD,
+  database: DB_NAME,
+  host: DB_HOST,
+  port: DB_PORT,
+  dialect: 'postgres',
+  logging: false,
+};
+
 const sequelize = DATABASE_URL
   ? new Sequelize(DATABASE_URL, { logging: false, dialect: 'postgres' })
-  : new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-      host: DB_HOST,
-      port: DB_PORT,
-      dialect: 'postgres',
-      logging: false,
-  });
+  : new Sequelize(dbConfig);
+
+export const development = dbConfig;
+export const test = { ...dbConfig, database: 'techgist_db_test' };
+export const production = { use_env_variable: 'DATABASE_URL', dialect: 'postgres' };
 
 export default sequelize;

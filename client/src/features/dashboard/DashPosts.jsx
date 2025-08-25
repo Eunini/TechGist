@@ -3,13 +3,15 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { HiOutlineExclamationCircle } from 'react-icons/hi';
+import { useToast } from '../../hooks/useToast';
 
 export default function DashPosts() {
-  const { currentUser } = useSelector((state) => state.user);
+  const { currentUser, token } = useSelector((state) => state.user);
   const [userPosts, setUserPosts] = useState([]);
   const [showMore, setShowMore] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [postIdToDelete, setPostIdToDelete] = useState('');
+  const { push } = useToast();
   useEffect(() => {
   const fetchPosts = async () => {
       try {
@@ -52,19 +54,25 @@ export default function DashPosts() {
     setShowModal(false);
     try {
       const res = await fetch(
-        `/api/post/deletepost/${postIdToDelete}/${currentUser.id}`,
-        { method: 'DELETE' }
+        `/api/post/deletepost/${postIdToDelete}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
       );
       const data = await res.json();
       if (!res.ok) {
-        console.log(data.message);
+        push(data.message, 'error');
       } else {
         setUserPosts((prev) =>
           prev.filter((post) => post.id !== postIdToDelete)
         );
+        push('Post deleted successfully', 'success');
       }
     } catch (error) {
-      console.log(error.message);
+      push(error.message, 'error');
     }
   };
 
@@ -77,7 +85,7 @@ export default function DashPosts() {
               <Table.HeadCell>Date updated</Table.HeadCell>
               <Table.HeadCell>Post image</Table.HeadCell>
               <Table.HeadCell>Post title</Table.HeadCell>
-              <Table.HeadCell>Category</Table.HeadCell>
+              <Table.HeadCell>Topic</Table.HeadCell>
               <Table.HeadCell>Delete</Table.HeadCell>
               <Table.HeadCell>
                 <span>Edit</span>
@@ -106,7 +114,7 @@ export default function DashPosts() {
                       {post.title}
                     </Link>
                   </Table.Cell>
-                  <Table.Cell>{post.category}</Table.Cell>
+                  <Table.Cell>{post.topic}</Table.Cell>
                   <Table.Cell>
                     <span
                       onClick={() => {

@@ -17,8 +17,6 @@ const ExploreTopics = () => {
   ];
 
   const fetchTopics = useCallback(async () => {
-    // Prevent re-entry if already loading
-    if (loading) return;
     try {
       setError(false);
       setLoading(true);
@@ -34,20 +32,16 @@ const ExploreTopics = () => {
         throw new Error((data && data.message) || 'Failed to load topics');
       }
     } catch (err) {
-      setError(true);
-      setTopics([]);
-      // Only show one error toast per failure session
       toast.push(err.message || 'Could not load topics', 'error');
+      setError(true);
     } finally {
       setLoading(false);
     }
   }, [toast]);
 
   useEffect(() => {
-    // initial load only
     fetchTopics();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [fetchTopics]);
 
   const showFallback = error && !loading;
 

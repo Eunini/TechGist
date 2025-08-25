@@ -34,10 +34,13 @@ class PostService {
   }
 
   async getAllPosts(queryParams) {
-    const { topic, search } = queryParams;
+    const { topic, search, postId } = queryParams;
     const where = {};
     if (topic) {
       where.topic = topic;
+    }
+    if (postId) {
+      where.id = postId;
     }
     if (search) {
       where[Op.or] = [
