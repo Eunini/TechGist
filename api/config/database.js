@@ -104,8 +104,18 @@ const dbConfig = {
   logging: false,
 };
 
+// **Render-ready Sequelize instantiation with SSL**
 const sequelize = DATABASE_URL
-  ? new Sequelize(DATABASE_URL, { logging: false, dialect: 'postgres' })
+  ? new Sequelize(DATABASE_URL, {
+      logging: false,
+      dialect: 'postgres',
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false, // required for Render Postgres
+        },
+      },
+    })
   : new Sequelize(dbConfig);
 
 export const development = dbConfig;
